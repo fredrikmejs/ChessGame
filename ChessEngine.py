@@ -3,13 +3,16 @@ class GameState:
         # Creates the board
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
+            ["--", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["bp", "--", "--", "--", "--", "--", "--", "--"],
+            ["wp", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
+            ["--", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
+
+        self.functionForMOve = {'p': self.getPawnMoves, 'R': self.getRookMoves, 'N': self.getKnightMoves,
+                                'B': self.getBishopMoves, 'Q': self.getQueenMoves, 'K': self.getKingMoves }
 
         # White always start
         self.whiteToMove = True
@@ -22,7 +25,7 @@ class GameState:
         self.whiteToMove = not self.whiteToMove  # Switches turn.
 
         if self.whiteToMove:
-            print("White to move")
+            print("White-- to move")
         else:
             print("Black to move")
 
@@ -36,10 +39,8 @@ class GameState:
                 turn = self.board[r][c][0]
                 if (turn == 'w' and self.whiteToMove) or (turn == "b" and not self.whiteToMove):
                     piece = self.board[r][c][1]
-                    if piece == 'p':
-                        self.getPawnMoves(r, c, moves)
-                    elif piece == 'R':
-                        self.getRookMoves(r, c, moves)
+
+                    self.functionForMOve[piece](r,c,moves) #instad of if/else statements
         return moves
 
     def getPawnMoves(self, r, c, moves):
@@ -71,6 +72,75 @@ class GameState:
                     moves.append(Move((r, c), (r + 1, c + 1), self.board))
 
     def getRookMoves(self, r, c, moves):
+            enemyColor = "b" if self.whiteToMove else "w"
+            going = True
+            i = 1
+            while going:
+                if r - i < 0:
+                    break
+                if self.board[r - i][c] == "--":
+                    moves.append(Move((r, c), (r - i, c), self.board))
+                else:
+                    going = False
+                if self.board[r - i][c][0] == enemyColor:
+                    moves.append(Move((r, c), (r - i, c), self.board))
+                    going = False
+                i += 1
+            i = 1
+            going = True
+            while going:
+                if r + i > len(self.board)-1:
+                    break
+                if self.board[r + i][c] == "--":
+                    moves.append(Move((r, c), (r + i, c), self.board))
+                else:
+                    going = False
+
+                if self.board[r + i][c][0] == enemyColor:
+                    moves.append(Move((r, c), (r + i, c), self.board))
+                    going = False
+                i += 1
+
+            i = 1
+            going = True
+            while going:
+                if c + i > len(self.board) - 1:
+                    break
+                if self.board[r][c + i] == "--":
+                    moves.append(Move((r, c), (r, c + i), self.board))
+                else:
+                    going = False
+
+                if self.board[r][c + i][0] == enemyColor:
+                    moves.append(Move((r, c), (r, c + i), self.board))
+                    going = False
+                i += 1
+
+            going = True
+            i = 1
+            while going:
+                if c - i < 0:
+                    break
+                if self.board[r][c - i] == "--":
+                    moves.append(Move((r, c), (r, c - i), self.board))
+                else:
+                    going = False
+
+                if self.board[r][c - i][0] == enemyColor:
+                    moves.append(Move((r, c), (r, c - i), self.board))
+                    going = False
+                i += 1
+
+    def getBishopMoves(self, r, c, moves):
+        pass
+
+    def getKnightMoves(self, r, c, moves):
+        pass
+
+    def getQueenMoves(self, r, c, moves):
+        pass
+
+    def getKingMoves(self, r, c, moves):
         pass
 
     def undoMove(self):
