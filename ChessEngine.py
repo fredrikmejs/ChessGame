@@ -3,12 +3,12 @@ class GameState:
         # Creates the board
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["--", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
+            ["bp", "--", "bp", "--", "--", "bp", "--", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["bp", "--", "--", "--", "--", "--", "--", "--"],
-            ["wp", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["wp", "--", "wp", "--", "--", "wp", "--", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
 
         self.functionForMOve = {'p': self.getPawnMoves, 'R': self.getRookMoves, 'N': self.getKnightMoves,
@@ -40,7 +40,7 @@ class GameState:
                 if (turn == 'w' and self.whiteToMove) or (turn == "b" and not self.whiteToMove):
                     piece = self.board[r][c][1]
 
-                    self.functionForMOve[piece](r,c,moves) #instad of if/else statements
+                    self.functionForMOve[piece](r, c, moves) #instad of if/else statements
         return moves
 
     def getPawnMoves(self, r, c, moves):
@@ -64,75 +64,128 @@ class GameState:
                     moves.append(Move((r, c), (r + 2, c), self.board))
             if c - 1 >= 0:
                 if self.board[r + 1][c - 1][0] == 'w':
-                    print("venstre " + self.board[r + 1][c - 1][0])
                     moves.append(Move((r, c), (r + 1, c - 1), self.board))
             if c + 1 <= 7:
                 if self.board[r + 1][c + 1][0] == 'w':
-                    print("højre " + self.board[r + 1][c + 1][0])
                     moves.append(Move((r, c), (r + 1, c + 1), self.board))
 
     def getRookMoves(self, r, c, moves):
-            enemyColor = "b" if self.whiteToMove else "w"
-            going = True
-            i = 1
-            while going:
-                if r - i < 0:
-                    break
-                if self.board[r - i][c] == "--":
-                    moves.append(Move((r, c), (r - i, c), self.board))
-                else:
-                    going = False
-                if self.board[r - i][c][0] == enemyColor:
-                    moves.append(Move((r, c), (r - i, c), self.board))
-                    going = False
-                i += 1
-            i = 1
-            going = True
-            while going:
-                if r + i > len(self.board)-1:
-                    break
-                if self.board[r + i][c] == "--":
-                    moves.append(Move((r, c), (r + i, c), self.board))
-                else:
-                    going = False
+        enemyColor = "b" if self.whiteToMove else "w"
+        going = True
+        i = 1
+        while going:
+            if r - i < 0:
+                break
+            if self.board[r - i][c] == "--":
+                moves.append(Move((r, c), (r - i, c), self.board))
+            else:
+                going = False
+            if self.board[r - i][c][0] == enemyColor:
+                moves.append(Move((r, c), (r - i, c), self.board))
+                going = False
+            i += 1
+        i = 1
+        going = True
+        while going:
+            if r + i > len(self.board)-1:
+                break
+            if self.board[r + i][c] == "--":
+                moves.append(Move((r, c), (r + i, c), self.board))
+            else:
+                going = False
 
-                if self.board[r + i][c][0] == enemyColor:
-                    moves.append(Move((r, c), (r + i, c), self.board))
-                    going = False
-                i += 1
+            if self.board[r + i][c][0] == enemyColor:
+                moves.append(Move((r, c), (r + i, c), self.board))
+                going = False
+            i += 1
 
-            i = 1
-            going = True
-            while going:
-                if c + i > len(self.board) - 1:
-                    break
-                if self.board[r][c + i] == "--":
-                    moves.append(Move((r, c), (r, c + i), self.board))
-                else:
-                    going = False
+        i = 1
+        going = True
+        while going:
+            if c + i > len(self.board) - 1:
+                break
+            if self.board[r][c + i] == "--":
+                moves.append(Move((r, c), (r, c + i), self.board))
+            else:
+                going = False
 
-                if self.board[r][c + i][0] == enemyColor:
-                    moves.append(Move((r, c), (r, c + i), self.board))
-                    going = False
-                i += 1
+            if self.board[r][c + i][0] == enemyColor:
+                moves.append(Move((r, c), (r, c + i), self.board))
+                going = False
+            i += 1
 
-            going = True
-            i = 1
-            while going:
-                if c - i < 0:
-                    break
-                if self.board[r][c - i] == "--":
-                    moves.append(Move((r, c), (r, c - i), self.board))
-                else:
-                    going = False
+        going = True
+        i = 1
+        while going:
+            if c - i < 0:
+                break
+            if self.board[r][c - i] == "--":
+                moves.append(Move((r, c), (r, c - i), self.board))
+            else:
+                going = False
 
-                if self.board[r][c - i][0] == enemyColor:
-                    moves.append(Move((r, c), (r, c - i), self.board))
-                    going = False
-                i += 1
+            if self.board[r][c - i][0] == enemyColor:
+                moves.append(Move((r, c), (r, c - i), self.board))
+                going = False
+            i += 1
 
     def getBishopMoves(self, r, c, moves):
-        pass
+        enemyColor = "b" if self.whiteToMove else "w"
+        i = 1
+        going = True
+        while going:
+            if r - i < 0 or c - i < 0:
+                break
+            if self.board[r - i][c - i] == "--":
+                moves.append(Move((r, c), (r - i, c - i), self.board))
+            else:
+                going = False
+            if self.board[r - i][c - i][0] == enemyColor:
+                moves.append(Move((r, c), (r - i, c - i), self.board))
+                going = False
+            i += 1
+
+        i = 1
+        going = True
+        while going:
+            if r + i > len(self.board) - 1 or c + i > len(self.board) - 1:
+                break
+            if self.board[r + i][c + i] == "--":
+                moves.append(Move((r, c), (r + i, c + i), self.board))
+            else:
+                going = False
+            if self.board[r + i][c + i][0] == enemyColor:
+                moves.append(Move((r, c), (r + i, c + i), self.board))
+                going = False
+            i += 1
+
+        i = 1
+        going = True
+        while going:
+            if r - i < 0 or c + i > len(self.board) - 1:
+                break
+            if self.board[r - i][c + i] == "--":
+                moves.append(Move((r, c), (r - i, c + i), self.board))
+            else:
+                going = False
+            if self.board[r - i][c + i][0] == enemyColor:
+                moves.append(Move((r, c), (r - i, c + i), self.board))
+                going = False
+            i += 1
+
+        i = 1
+        going = True
+        while going:
+            if r + i > len(self.board) - 1 or c - i < 0:
+                break
+            if self.board[r + i][c - i] == "--":
+                moves.append(Move((r, c), (r + i, c - i), self.board))
+            else:
+                going = False
+            if self.board[r + i][c - i][0] == enemyColor:
+                moves.append(Move((r, c), (r + i, c - i), self.board))
+                going = False
+            i += 1
 
     def getKnightMoves(self, r, c, moves):
         pass
