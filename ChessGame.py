@@ -23,10 +23,30 @@ def main():
     gs = ChessEngine.GameState()
     loadImages()
     running = True
+    sqSelected = ()
+    playerClicks = []
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
+            elif e.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()
+                col = location[0]//SQ_SIZE
+                row = location[1]//SQ_SIZE
+                if sqSelected == (row, col):
+                    #Clears both selected and playerClicks to make sure we move the correct piece if people clicks on the same location twice.
+                    sqSelected = ()
+                    playerClicks = []
+                else:
+                    sqSelected = (row, col)
+                    playerClicks.append(sqSelected) #both first and second click
+
+                if len(playerClicks) == 2: #Makes a brick a move is being made
+                    move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
+                    gs.makeMove(move)
+                    sqSelected = ()
+                    playerClicks = []
+
         drawGameState(screen, gs)
         clock.tick(MAX_FPS)
         p.display.flip()
@@ -35,8 +55,6 @@ def main():
 '''
 Draws he board from the current game state
 '''
-
-
 def drawGameState(screen, gs):
     drawBoard(screen)  # creates the board
     drawPieces(screen, gs.board)
