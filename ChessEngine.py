@@ -5,8 +5,8 @@ class GameState:
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "bR", "--", "--", "--", "--"],
+            ["--", "--", "wR", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
@@ -72,59 +72,57 @@ class GameState:
         enemyColor = "b" if self.whiteToMove else "w"
         going = True
         i = 1
+        goUp = True
+        goDown = True
+        goRight = True
+        goLeft = True
+
         while going:
             if r - i < 0:
-                break
-            if self.board[r - i][c] == "--":
+                goUp = False
+            #Checks for moves going up the board
+            elif self.board[r - i][c] == "--" and goUp:
                 moves.append(Move((r, c), (r - i, c), self.board))
-            else:
-                going = False
-            if self.board[r - i][c][0] == enemyColor:
+            elif self.board[r - i][c][0] == enemyColor and goUp:
                 moves.append(Move((r, c), (r - i, c), self.board))
-                going = False
-            i += 1
-        i = 1
-        going = True
-        while going:
-            if r + i > len(self.board)-1:
-                break
-            if self.board[r + i][c] == "--":
-                moves.append(Move((r, c), (r + i, c), self.board))
+                goUp = False
             else:
-                going = False
+                goUp = False
 
-            if self.board[r + i][c][0] == enemyColor:
+            #Checks for moves going down the board
+            if r + i > len(self.board) - 1:
+                goDown = False
+            elif self.board[r + i][c] == "--" and goDown:
                 moves.append(Move((r, c), (r + i, c), self.board))
-                going = False
-            i += 1
+            elif self.board[r + i][c][0] == enemyColor and goDown:
+                moves.append(Move((r, c), (r + i, c), self.board))
+                goDown = False
+            else:
+                goDown = False
 
-        i = 1
-        going = True
-        while going:
+            #Checks for moves going right on the board
             if c + i > len(self.board) - 1:
-                break
-            if self.board[r][c + i] == "--":
+                goRight = False
+            elif self.board[r][c + i] == "--" and goRight:
                 moves.append(Move((r, c), (r, c + i), self.board))
+            elif self.board[r][c + i][0] == enemyColor and goRight:
+                moves.append(Move((r, c), (r, c + i), self.board))
+                goRight = False
             else:
-                going = False
+                goRight = False
 
-            if self.board[r][c + i][0] == enemyColor:
-                moves.append(Move((r, c), (r, c + i), self.board))
-                going = False
-            i += 1
-
-        going = True
-        i = 1
-        while going:
+            #Checks for moves going left on the board
             if c - i < 0:
-                break
-            if self.board[r][c - i] == "--":
+                goLeft = False
+            elif self.board[r][c - i] == "--" and goLeft:
                 moves.append(Move((r, c), (r, c - i), self.board))
-            else:
+            elif self.board[r][c - i][0] == enemyColor:
+                moves.append(Move((r, c), (r, c - i), self.board))
                 going = False
+            else:
+                goLeft = False
 
-            if self.board[r][c - i][0] == enemyColor:
-                moves.append(Move((r, c), (r, c - i), self.board))
+            if not goLeft and not goRight and not goUp and not goDown:
                 going = False
             i += 1
 
