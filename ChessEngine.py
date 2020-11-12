@@ -43,7 +43,7 @@ class GameState:
         return moves
 
     def getPawnMoves(self, r, c, moves):
-        # Has to think about which turn it is.
+        # Has to think about which turn it is because pawns are only able to move one direction.
         if self.whiteToMove:
             if self.board[r - 1][c] == "--":
                 moves.append(Move((r, c), (r - 1, c), self.board))
