@@ -443,9 +443,12 @@ class GameState:
             self.board[move.endRow][move.endCol] = move.pieceCaptured
             self.whiteToMove = not self.whiteToMove  # switches the turn back
     
+    #evaluation function, values taken from notes.
     def eval(self):
         value = 0.0
+        #checks if it's white's turn to move, and sets player.
         player = 'w' if self.whiteToMove else 'b'
+        #field values, taken from slides.
         field_values = [
             [0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 ],
             [23.0, 30.0, 41.5, 44.0, 47.5, 33.5, 23.0, 23.0],
@@ -455,7 +458,9 @@ class GameState:
             [-4.0, -1.0, 3.5 , 5.0 , 6.5 , 0.5 , -4.0, -4.0],
             [-2.0, 0.0 , 3.0 , 4.0 , 5.0 , 1.0 , -2.0, -2.0],
             [0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 ]]
+        #reverses the field_values array
         rev_field_values = field_values[::-1]
+        #reverses each row in the fied_values array
         for index, row in enumerate(rev_field_values):
             rev_field_values[index] = row[::-1]
         if player == 'w':
@@ -495,7 +500,7 @@ class GameState:
                             value -= 10000.0
                         if 'N' in piece:
                             value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
-        if player == 'b':
+        elif player == 'b':
             for x, row in enumerate(self.board):
                 for y, piece in enumerate(row):
                     if 'b' in piece:
