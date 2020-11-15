@@ -1,7 +1,7 @@
 import pygame as p
 import ChessEngine
 
-WIDTH = HEIGHT = 1500
+WIDTH = HEIGHT = 1920
 DIMENSION = 8  # The dimension of a chess board is 8x8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
@@ -48,6 +48,8 @@ def main():
                     if move in validMoves:
                         gs.makeMove(move)
                         moveMade = True
+                    else:
+                        print("Not valid move")
                     sqSelected = ()
                     playerClicks = []
             elif e.type == p.KEYDOWN:
