@@ -42,7 +42,7 @@ class GameState:
 
     def getValidMoves(self):
         moves = []
-        self.inCheck, self.pins, self.checks = self.checkForChecksAndPins
+        self.inCheck, self.pins, self.checks = self.checkForChecksAndPins()
         if self.whiteToMove:
             kingRow = self.whiteKingLoc[0]
             kingCol = self.whiteKingLoc[1]
@@ -468,16 +468,16 @@ class GameState:
                             else:
                                 value += 100.0 + field_values[x][y]
                         if 'R' in piece:
-                            value += 500.0 + 1.5 * protectedRook(x, y)
+                            value += 500.0 + 1.5 * self.protectedRook(x, y)
                         if 'B' in piece:
-                            value += 300.0 + 2.0 * protectedBishop(x, y)
+                            value += 300.0 + 2.0 * self.protectedBishop(x, y)
                         if 'Q' in piece:
-                            mult = protectedBishop(x, y) + protectedRook(x, y) - 1
+                            mult = self.protectedBishop(x, y) + self.protectedRook(x, y) - 1
                             value += 900.0 + 1.0 * mult
                         if 'K' in piece:
                             value += 10000.0
                         if 'N' in piece:
-                            value += 300 + 3.0 * (4-distanceToCenter(y))
+                            value += 300 + 3.0 * (4 - self.distanceToCenter(y))
                     if 'b' in piece:
                         if 'p' in piece:
                             if self.board[x+1][y] == 'bp':
@@ -485,16 +485,16 @@ class GameState:
                             else:
                                 value -= 100.0 + rev_field_values[x][y]
                         if 'R' in piece:
-                            value -= 500.0 + 1.5 * protectedRook(x, y)
+                            value -= 500.0 + 1.5 * self.protectedRook(x, y)
                         if 'B' in piece:
-                            value -= 300.0 + 2.0 * protectedBishop(x, y)
+                            value -= 300.0 + 2.0 * self.protectedBishop(x, y)
                         if 'Q' in piece:
-                            mult = protectedBishop(x, y) + protectedRook(x, y) - 1
+                            mult = self.protectedBishop(x, y) + self.protectedRook(x, y) - 1
                             value -= 900 + 1.0 * mult
                         if 'K' in piece:
                             value -= 10000.0
                         if 'N' in piece:
-                            value -= 300 + 3.0 * (4 - distanceToCenter(y))
+                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
         if player == 'b':
             for x, row in enumerate(self.board):
                 for y, piece in enumerate(row):
@@ -505,16 +505,16 @@ class GameState:
                             else:
                                 value += 100.0 + rev_field_values[x][y]
                         if 'R' in piece:
-                            value += 500.0 + 1.5 * protectedRook(x, y)
+                            value += 500.0 + 1.5 * self.protectedRook(x, y)
                         if 'B' in piece:
-                            value += 300.0 + 2.0 * protectedBishop(x, y)
+                            value += 300.0 + 2.0 * self.protectedBishop(x, y)
                         if 'Q' in piece:
-                            mult = protectedBishop(x, y) + protectedRook(x, y) - 1
+                            mult = self.protectedBishop(x, y) + self.protectedRook(x, y) - 1
                             value += 900.0 + 1.0 * mult
                         if 'K' in piece:
                             value += 10000.0
                         if 'N' in piece:
-                            value += 300 + 3.0 * (4-distanceToCenter(y))
+                            value += 300 + 3.0 * (4 - self.distanceToCenter(y))
                     if 'w' in piece:
                         if 'p' in piece:
                             if self.board[x+1][y] == 'wp':
@@ -522,16 +522,16 @@ class GameState:
                             else:
                                 value -= 100.0 + field_values[x][y]
                         if 'R' in piece:
-                            value -= 500.0 + 1.5 * protectedRook(x, y)
+                            value -= 500.0 + 1.5 * self.protectedRook(x, y)
                         if 'B' in piece:
-                            value -= 300.0 + 2.0 * protectedBishop(x, y)
+                            value -= 300.0 + 2.0 * self.protectedBishop(x, y)
                         if 'Q' in piece:
-                            mult = protectedBishop(x, y) + protectedRook(x, y) - 1
+                            mult = self.protectedBishop(x, y) + self.protectedRook(x, y) - 1
                             value -= 900 + 1.0 * mult
                         if 'K' in piece:
                             value -= 10000.0
                         if 'N' in piece:
-                            value -= 300 + 3.0 * (4 - distanceToCenter(y))
+                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
         return value
     
     def protectedRook(self, x , y):
@@ -610,7 +610,7 @@ class GameState:
         distance = 0
         if y >= 4:
             distance = y - 4
-        else if y < 4:
+        elif y < 4:
             distance = 3 - y
         return distance
     
