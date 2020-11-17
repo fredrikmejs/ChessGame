@@ -24,6 +24,9 @@ class GameState:
         self.pins = []
         self.checks = []
 
+    def switchWhiteToMove(self):
+        self.whiteToMove = not self.whiteToMove
+
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"  # Set the moved from postion empty
         self.board[move.endRow][move.endCol] = move.pieceMoved  # move the brick to the given position
