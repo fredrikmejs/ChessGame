@@ -45,13 +45,16 @@ def main():
 
                 if len(playerClicks) == 2: #Makes a brick a move is being made
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    if move in validMoves:
-                        gs.makeMove(move)
-                        moveMade = True
-                    else:
+                    for i in range(len(validMoves)):
+                        if move == validMoves[i]:
+                            gs.makeMove(validMoves[i])
+                            moveMade = True
+                            sqSelected = ()
+                            playerClicks = []
+                            break
+                    if not moveMade:
                         print("Not valid move")
-                    sqSelected = ()
-                    playerClicks = []
+                        playerClicks = [sqSelected]
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undoMove()
