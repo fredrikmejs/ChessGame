@@ -471,11 +471,13 @@ class GameState:
             return
         if (self.whiteToMove and self.currentCastlingRight.whiteKSide) or (
                 not self.whiteToMove and self.currentCastlingRight.blackKSide):
-            print("+1 = " + self.board[r][c + 1] + " c = " + str(c + 1))
-            print("+2 = " + self.board[r][c + 2] + " c = " + str(c + 2))
             if self.board[r][c + 1] == '--' and self.board[r][c + 2] == '--':
                 if not self.squareUnderAttack(r, c + 1) and not self.squareUnderAttack(r, c + 2):
                     moves.append(Move((r, c), (r, c + 2), self.board, isCastleMove=True))
+
+        if self.board[r][c - 1] == '--' and self.board[r][c - 2] == '--' and self.board[r][c - 3]:
+            if not self.squareUnderAttack(r, c - 1) and not self.squareUnderAttack(r, c - 2):
+                moves.append(Move((r, c), (r, c - 2), self.board, isCastleMove=True))
 
     def inCheck(self):
         if self.whiteToMove:
