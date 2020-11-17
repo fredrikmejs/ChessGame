@@ -2,17 +2,6 @@ class GameState:
     def __init__(self):
         # Creates the board
         self.board = [
-            ["bR", "--", "--", "--", "bK", "--", "--", "bR"],
-            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-            ["wR", "--", "--", "--", "wK", "--", "--", "wR"]]
-
-        '''
-        self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -21,7 +10,7 @@ class GameState:
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
-        '''
+
 
         self.functionForMove = {'p': self.getPawnMoves, 'R': self.getRookMoves, 'N': self.getKnightMoves,
                                 'B': self.getBishopMoves, 'Q': self.getQueenMoves, 'K': self.getKingMoves}
@@ -149,8 +138,7 @@ class GameState:
         return moves
 
     def getPawnMoves(self, r, c, moves):
-        pass
-        '''
+
         piecePinned = False
         pinDirection = ()
         for i in range(len(self.pins) - 1, - 1, -1):
@@ -191,7 +179,7 @@ class GameState:
                 if self.board[r + 1][c + 1][0] == 'w':
                     if not piecePinned or pinDirection == (1, 1):
                         moves.append(Move((r, c), (r + 1, c + 1), self.board))
-'''
+
     def getRookMoves(self, r, c, moves):
         piecePinned = False
         pinDirection = ()
