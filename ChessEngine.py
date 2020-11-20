@@ -2,15 +2,14 @@ class GameState:
     def __init__(self):
         # Creates the board
         self.board = [
-            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
-
+            ["bR", "bN", "bB", "bQ", "--", "bB", "bN", "bR"],
+            ["bp", "bp", "bp", "bp", "--", "bp", "bp", "bp"],
+            ["--", "--", "--", "--", "bK", "--", "--", "--"],
+            ["--", "--", "--", "--", "bp", "--", "--", "--"],
+            ["--", "--", "--", "--", "wp", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "wK", "--", "--"],
+            ["wp", "wp", "wp", "wp", "--", "wp", "wp", "wp"],
+            ["wR", "wN", "wB", "wQ", "--", "wB", "wN", "wR"]]
 
         self.functionForMove = {'p': self.getPawnMoves, 'R': self.getRookMoves, 'N': self.getKnightMoves,
                                 'B': self.getBishopMoves, 'Q': self.getQueenMoves, 'K': self.getKingMoves}
@@ -22,12 +21,13 @@ class GameState:
         self.whiteKingLoc = (7, 4)
         self.blackKingLoc = (0, 4)
         self.inCheck = False
+        self.pins = []
+        self.checks = []
+
         self.currentCastlingRight = CastleRights(True, True, True, True)
         self.castleRightsLog = [CastleRights(self.currentCastlingRight.whiteKSide, self.currentCastlingRight.blackKSide,
                                              self.currentCastlingRight.whiteQSide,
                                              self.currentCastlingRight.blackQSide)]
-        self.pins = []
-        self.checks = []
 
     def switchWhiteToMove(self):
         self.whiteToMove = not self.whiteToMove
@@ -87,13 +87,14 @@ class GameState:
 
     def getValidMoves(self):
         moves = []
-        self.inCheck, self.pins, self.checks = self.checkForChecksAndPins()
+
         if self.whiteToMove:
             kingRow = self.whiteKingLoc[0]
             kingCol = self.whiteKingLoc[1]
         else:
             kingRow = self.blackKingLoc[0]
             kingCol = self.blackKingLoc[1]
+        self.inCheck, self.pins, self.checks = self.checkForChecksAndPins(kingRow, kingCol)
         if self.inCheck:
             if len(self.checks) == 1:
                 moves = self.getAllPossibleMoves()
@@ -149,7 +150,7 @@ class GameState:
                 piecePinned = True
                 pinDirection = (self.pins[i][2], self.pins[i][3])
                 self.pins.remove(self.pins[i])
-            break
+                break
 
         # Has to think about which turn it is because pawns are only able to move one direction.
         if self.whiteToMove:
@@ -192,7 +193,7 @@ class GameState:
                 pinDirection = (self.pins[i][2], self.pins[i][3])
                 if self.board[r][c][1] != 'Q':  # Doesn't remove pin for queen on rock moves
                     self.pins.remove(self.pins[i])
-            break
+                break
 
         enemyColor = "b" if self.whiteToMove else "w"
         going = True
@@ -252,7 +253,7 @@ class GameState:
                     moves.append(Move((r, c), (r, c - i), self.board))
             elif self.board[r][c - i][0] == enemyColor:
                 if not piecePinned or pinDirection == (r, c - 1):
-                    moves.append(Move((r, c), (r, c - i), self.board))
+                    moves.append(Move((r  , c), (r, c - i), self.board))
                     going = False
             else:
                 goLeft = False
@@ -342,8 +343,6 @@ class GameState:
     def getKnightMoves(self, r, c, moves):
 
         piecePinned = False
-        pinDirections = ()
-
         for i in range(len(self.pins) - 1, -1, -1):
             piecePinned = True
             pinDirections = (self.pins[i][2], self.pins[i][3])
@@ -403,28 +402,28 @@ class GameState:
         if r - 1 < 0 or c - 1 < 0:
             pass
         elif self.board[r - 1][c - 1] == "--" or self.board[r - 1][c - 1][0] == enemyColor:
-            inCheck, pins, checks = self.checkForChecksAndPins()
+            inCheck, pins, checks = self.checkForChecksAndPins(r - 1, c - 1)
             if not inCheck:
                 moves.append(Move((r, c), (r - 1, c - 1), self.board))
 
         if r - 1 < 0:
             pass
         elif self.board[r - 1][c] == "--" or self.board[r - 1][c][0] == enemyColor:
-            inCheck, pins, checks = self.checkForChecksAndPins()
+            inCheck, pins, checks = self.checkForChecksAndPins(r - 1, c)
             if not inCheck:
                 moves.append(Move((r, c), (r - 1, c), self.board))
 
         if r - 1 < 0 or c + 1 > len(self.board) - 1:
             pass
         elif self.board[r - 1][c + 1] == "--" or self.board[r - 1][c + 1][0] == enemyColor:
-            inCheck, pins, checks = self.checkForChecksAndPins()
+            inCheck, pins, checks = self.checkForChecksAndPins(r - 1, c + 1)
             if not inCheck:
                 moves.append(Move((r, c), (r - 1, c + 1), self.board))
 
         if c - 1 < 0:
             pass
         elif self.board[r][c - 1] == "--" or self.board[r][c - 1][0] == enemyColor:
-            inCheck, pins, checks = self.checkForChecksAndPins()
+            inCheck, pins, checks = self.checkForChecksAndPins(r, c - 1)
             if not inCheck:
                 moves.append(Move((r, c), (r, c - 1), self.board))
 
@@ -432,28 +431,28 @@ class GameState:
             pass
         elif self.board[r][c + 1] == "--" or self.board[r][c + 1][0] == enemyColor:
 
-            inCheck, pins, checks = self.checkForChecksAndPins()
+            inCheck, pins, checks = self.checkForChecksAndPins(r, c + 1)
             if not inCheck:
                 moves.append(Move((r, c), (r, c + 1), self.board))
 
         if r + 1 > len(self.board) - 1 or c - 1 < 0:
             pass
         elif self.board[r + 1][c - 1] == "--" or self.board[r + 1][c - 1][0] == enemyColor:
-            inCheck, pins, checks = self.checkForChecksAndPins()
+            inCheck, pins, checks = self.checkForChecksAndPins(r + 1, c - 1)
             if not inCheck:
                 moves.append(Move((r, c), (r + 1, c - 1), self.board))
 
         if r + 1 > len(self.board) - 1:
             pass
         elif self.board[r + 1][c] == "--" or self.board[r + 1][c][0] == enemyColor:
-            inCheck, pins, checks = self.checkForChecksAndPins()
+            inCheck, pins, checks = self.checkForChecksAndPins(r + 1, c)
             if not inCheck:
                 moves.append(Move((r, c), (r + 1, c), self.board))
 
         if r + 1 > len(self.board) - 1 or c + 2 > len(self.board) - 1:
             pass
         elif self.board[r + 1][c + 1] == "--" or self.board[r + 1][c + 1][0] == enemyColor:
-            inCheck, pins, checks = self.checkForChecksAndPins()
+            inCheck, pins, checks = self.checkForChecksAndPins(r + 1, c + 1)
             if not inCheck:
                 moves.append(Move((r, c), (r + 1, c + 1), self.board))
 
@@ -481,31 +480,31 @@ class GameState:
         oopMoves = self.getAllPossibleMoves()
         self.whiteToMove = not self.whiteToMove
         for move in oopMoves:
-            if move.endRow == r and move.endCol ==c:
+            if move.endRow == r and move.endCol == c:
                 return True
         return False
 
-    def checkForChecksAndPins(self):
+    def checkForChecksAndPins(self, r, c):
         pins = []
         checks = []
         inCheck = False
         if self.whiteToMove:
             enemyColor = "b"
             ally = "w"
-            startRow = self.whiteKingLoc[0]
-            startCol = self.whiteKingLoc[1]
+            startRow = r
+            startCol = c
         else:
             enemyColor = "w"
             ally = "b"
-            startRow = self.blackKingLoc[0]
-            startCol = self.blackKingLoc[1]
-        possibleKingMoves = ((-1, 0), (0, -1), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1))
-        for i in range(len(possibleKingMoves)):
-            direction = possibleKingMoves[i]
+            startRow = r
+            startCol = c
+        possibleKingMoves = ((-1, 0), (0, -1), (1, 0), (-1, 1), (-1, -1), (1, -1), (1, 1))
+        for j in range(len(possibleKingMoves)):
+            direction = possibleKingMoves[j]
             possiblePin = ()
-            for j in range(1, 8):
-                endRow = startRow + direction[0] * j
-                endCol = startCol + direction[1] * j
+            for i in range(1, 8):
+                endRow = startRow + direction[0] * i
+                endCol = startCol + direction[1] * i
                 if 0 <= endRow < 8 and 0 <= endCol < 8:
                     endPiece = self.board[endRow][endCol]
                     if endPiece[0] == ally:
@@ -516,10 +515,10 @@ class GameState:
                     elif endPiece[0] == enemyColor:
                         type = endPiece[1]
 
-                        if (0 <= i <= 3 and type == 'R') or \
-                                (4 <= i <= 7 and type == 'B') or \
-                                (j == 1 and type == 'p' and ((enemyColor == 'w') and 6 <= i <= 7) or \
-                                 (enemyColor == 'b' and 4 <= j <= 5)) or \
+                        if (0 <= j <= 3 and type == 'R') or\
+                                (4 <= j <= 7 and type == 'B') or\
+                                (i == 1 and type == 'p' and ((enemyColor == 'w') and 6 <= j <= 7) or
+                                 (enemyColor == 'b' and 4 <= j <= 5)) or\
                                 (type == 'Q') or (j == 1 and type == 'K'):
                             if possiblePin == ():  # Checks if any piece is blocking
                                 inCheck = True
@@ -530,8 +529,8 @@ class GameState:
                                 break
                         else:  # No check
                             break
-                    else:
-                        break
+                else:
+                    break
         # Checks for knight check because of special move
         knightPossibleMoves = ((-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1))
         for m in knightPossibleMoves:
