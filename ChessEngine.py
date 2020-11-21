@@ -2,14 +2,14 @@ class GameState:
     def __init__(self):
         # Creates the board
         self.board = [
-            ["bR", "bN", "bB", "--", "--", "bB", "bN", "bR"],
+            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-            ["--", "--", "--", "--", "bK", "--", "--", "--"],
-            ["--", "--", "--", "--", "bp", "--", "--", "--"],
-            ["--", "--", "--", "--", "wp", "wQ", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-            ["wR", "wN", "wB", "wp", "wK", "wB", "wN", "wR"]]
+            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
 
         self.functionForMove = {'p': self.getPawnMoves, 'R': self.getRookMoves, 'N': self.getKnightMoves,
                                 'B': self.getBishopMoves, 'Q': self.getQueenMoves, 'K': self.getKingMoves}
@@ -87,17 +87,25 @@ class GameState:
                     self.currentCastlingRight.blackKSide = False
 
     def getValidMoves(self):
-        moves = self.getAllPossibleMoves()
-        for i in range(len(moves) - 1, - 1, - 1):
-            self.makeMove(moves[i])
-            self.whiteToMove = not self.whiteToMove #Make move switches the turn
-            if self.inCheck():
-                print("removes: " + str(moves[i]))
-                moves.remove(moves[i])
-            self.whiteToMove = not self.whiteToMove
-            self.undoMove()
+        if not self.checkMate:
+            moves = self.getAllPossibleMoves()
+            for i in range(len(moves) - 1, - 1, - 1):
+                self.makeMove(moves[i])
+                self.whiteToMove = not self.whiteToMove # Make move switches the turn
+                if self.inCheck():
+                    moves.remove(moves[i])
+                self.whiteToMove = not self.whiteToMove
+                self.undoMove()
 
-        return moves
+            if len(moves) == 0:
+                self.checkMate = True
+                if not self.whiteToMove:
+                    print("White won the game")
+                else:
+                    print("Black won the game")
+            return moves
+
+        return []
 
     def getAllPossibleMoves(self):
         moves = []
@@ -110,8 +118,6 @@ class GameState:
         return moves
 
     def getPawnMoves(self, r, c, moves):
-        pass
-        '''
         # Has to think about which turn it is because pawns are only able to move one direction.
         if self.whiteToMove:
             if self.board[r - 1][c] == "--":
@@ -130,14 +136,14 @@ class GameState:
             if self.board[r + 1][c] == "--":
                 moves.append(Move((r, c), (r + 1, c), self.board))
                 if r == 1 and self.board[r + 2][c] == "--":
-                        moves.append(Move((r, c), (r + 2, c), self.board))
+                    moves.append(Move((r, c), (r + 2, c), self.board))
             if c - 1 >= 0:
                 if self.board[r + 1][c - 1][0] == 'w':
                     moves.append(Move((r, c), (r + 1, c - 1), self.board))
             if c + 1 <= 7:
                 if self.board[r + 1][c + 1][0] == 'w':
                     moves.append(Move((r, c), (r + 1, c + 1), self.board))
-'''
+
     def getRookMoves(self, r, c, moves):
 
         enemyColor = "b" if self.whiteToMove else "w"
@@ -260,8 +266,7 @@ class GameState:
             i += 1
 
     def getKnightMoves(self, r, c, moves):
-        pass
-        '''
+
         enemyColor = "b" if self.whiteToMove else "w"
         # Checks move in the different directions
         if r - 2 < 0 or c - 1 < 0:
@@ -303,7 +308,7 @@ class GameState:
             pass
         elif self.board[r - 1][c + 2] == "--" or self.board[r - 1][c + 2][0] == enemyColor:
             moves.append(Move((r, c), (r - 1, c + 2), self.board))
-'''
+
     def getQueenMoves(self, r, c, moves):
         self.getBishopMoves(r, c, moves)
         self.getRookMoves(r, c, moves)
