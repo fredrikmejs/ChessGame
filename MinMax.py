@@ -214,7 +214,7 @@ class MinMax:
     def minMax(self, state, depth, maximizingPlayer, alpha=-sys.maxsize - 1, beta=sys.maxsize):
         if depth == 0:
             return self.get_board_value(state)
-        elif maximizingPlayer == True:
+        elif maximizingPlayer:
             value = -sys.maxsize - 1
             children = self.expandChildren(state)
             for child in children:
@@ -240,7 +240,7 @@ class MinMax:
             children = self.expandChildren(self.state)
             values = []
             for child in children:
-                values.append(self.minMax(child[0], 1, True))
+                values.append(self.minMax(child[0], 3, True))
             print(self.numberStates)
             self.numberStates = 0
             self.state.makeMove(children[values.index(max(values))][1])
