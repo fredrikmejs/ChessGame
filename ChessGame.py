@@ -2,8 +2,8 @@ import pygame as p
 import ChessEngine
 import MinMax as mm
 
-WIDTH = 700
-HEIGHT = 700
+WIDTH = 1920
+HEIGHT = 1920
 DIMENSION = 8  # The dimension of a chess board is 8x8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
@@ -19,13 +19,13 @@ def loadImages():
 
 def main():
     firstTurn = True
-    aiwhite = False
+    aiWhite = False
     while True:
         playerchoice = input("Do you want white to be ai or human?\n")
-        if(playerchoice == "ai"):
-            aiwhite = True
+        if playerchoice == "ai":
+            aiWhite = True
             break
-        elif(playerchoice == "human"):
+        elif playerchoice == "human":
             break
         else:
             pass
@@ -41,13 +41,14 @@ def main():
     sqSelected = ()
     playerClicks = []
     while running:
-        if (gs.whiteToMove and aiwhite) or (not gs.whiteToMove and not aiwhite):
+        if (gs.whiteToMove and aiWhite) or (not gs.whiteToMove and not aiWhite):
             print("AI turn")
             ai = mm.MinMax(gs, firstTurn)
             ai.makeMove()
             print("Player Turn")
             if firstTurn:
                 firstTurn = False
+            validMoves = gs.getValidMoves()
         else:
             for e in p.event.get():
                 if e.type == p.QUIT:
