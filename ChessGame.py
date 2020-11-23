@@ -41,6 +41,12 @@ def main():
     sqSelected = ()
     playerClicks = []
     while running:
+        if gs.checkMate:
+            if gs.whiteToMove:
+                print("White has won the game")
+            else:
+                print("Black has won the game")
+
         if (gs.whiteToMove and aiWhite) or (not gs.whiteToMove and not aiWhite):
             print("AI turn")
             ai = mm.MinMax(gs, firstTurn)
