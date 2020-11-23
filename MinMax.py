@@ -5,6 +5,7 @@ import copy as c
 class MinMax:
     def __init__(self, GameState):
         self.state = GameState
+        self.visitedStates = []
     
     def expandChildren(self, state):
         possibleMoves = []
@@ -14,7 +15,11 @@ class MinMax:
             tempState = ChessEngine.GameState()
             self.copyState(state, tempState)
             tempState.makeMove(move)
-            children.append((tempState, move))
+            if tempState not in self.visitedStates:
+                children.append((tempState, move))
+                self.visitedStates.append(tempState)
+            else:
+                pass
         return children
 
     #evaluation function, values taken from notes.
@@ -230,6 +235,7 @@ class MinMax:
         for child in children:
             values.append(self.minMax(child[0], 3, True))
         self.state.makeMove(children[values.index(max(values))][1])
+        self.visitedStates = []
         
 #state = ChessEngine.GameState()
 #mm = MinMax(state)
