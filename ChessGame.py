@@ -1,5 +1,6 @@
 import pygame as p
 import ChessEngine
+import MinMax as mm
 
 WIDTH = 700
 HEIGHT = 700
@@ -17,6 +18,16 @@ def loadImages():
 
 
 def main():
+    aiwhite = False
+    while True:
+        playerchoice = input("Do you want white to be ai or human?\n")
+        if(playerchoice == "ai"):
+            aiwhite = True
+            break
+        elif(playerchoice == "human"):
+            break
+        else:
+            pass
     p.init()
     screen = p.display.set_mode((WIDTH, HEIGHT))
     clock = p.time.Clock()
@@ -29,37 +40,42 @@ def main():
     sqSelected = ()
     playerClicks = []
     while running:
-        for e in p.event.get():
-            if e.type == p.QUIT:
-                running = False
-            elif e.type == p.MOUSEBUTTONDOWN:
-                location = p.mouse.get_pos()
-                col = location[0]//SQ_SIZE
-                row = location[1]//SQ_SIZE
-                if sqSelected == (row, col):
-                    #Clears both selected and playerClicks to make sure we move the correct piece if people clicks on the same location twice.
-                    sqSelected = ()
-                    playerClicks = []
-                else:
-                    sqSelected = (row, col)
-                    playerClicks.append(sqSelected) #both first and second click
-
-                if len(playerClicks) == 2: #Makes a brick a move is being made
-                    move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    for i in range(len(validMoves)):
-                        if move == validMoves[i]:
-                            gs.makeMove(validMoves[i])
-                            moveMade = True
-                            sqSelected = ()
-                            playerClicks = []
-                            break
-                    if not moveMade:
-                        print("Not valid move")
-                        playerClicks = [sqSelected]
-            elif e.type == p.KEYDOWN:
-                if e.key == p.K_z:
-                    gs.undoMove()
-                    moveMade = True
+        if (gs.whiteToMove and aiwhite) or (not gs.whiteToMove and not aiwhite):
+            print("AI turn")
+            ai = mm.MinMax(gs)
+            ai.makeMove()
+            print("Player Turn")
+        else:
+            for e in p.event.get():
+                if e.type == p.QUIT:
+                    running = False
+                elif e.type == p.MOUSEBUTTONDOWN:
+                    location = p.mouse.get_pos()
+                    col = location[0]//SQ_SIZE
+                    row = location[1]//SQ_SIZE
+                    if sqSelected == (row, col):
+                        #Clears both selected and playerClicks to make sure we move the correct piece if people clicks on the same location twice.
+                        sqSelected = ()
+                        playerClicks = []
+                    else:
+                        sqSelected = (row, col)
+                        playerClicks.append(sqSelected) #both first and second click
+                    if len(playerClicks) == 2: #Makes a brick a move is being made
+                        move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
+                        for i in range(len(validMoves)):
+                            if move == validMoves[i]:
+                                gs.makeMove(validMoves[i])
+                                moveMade = True
+                                sqSelected = ()
+                                playerClicks = []
+                                break
+                        if not moveMade:
+                            print("Not valid move")
+                            playerClicks = [sqSelected]
+                elif e.type == p.KEYDOWN:
+                    if e.key == p.K_z:
+                        gs.undoMove()
+                        moveMade = True
         if moveMade:
             validMoves = gs.getValidMoves()
             moveMade = False

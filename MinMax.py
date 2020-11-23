@@ -4,11 +4,7 @@ import copy as c
 
 class MinMax:
     def __init__(self, GameState):
-        self.state = ChessEngine.GameState()
-        self.copyState(GameState, self.state)
-        print(self.state.board)
-        self.makeMove()
-        print(self.state.board)
+        self.state = GameState
     
     def expandChildren(self, state):
         possibleMoves = []
@@ -203,6 +199,8 @@ class MinMax:
         copy.moveLog = c.deepcopy(original.moveLog)
         copy.whiteKingLoc = c.deepcopy(original.whiteKingLoc)
         copy.blackKingLoc = c.deepcopy(original.blackKingLoc)
+        copy.staleMate = c.deepcopy(original.staleMate)
+        copy.checkMate = c.deepcopy(original.checkMate)
 
     def minMax(self, state, depth, maximizingPlayer, alpha = -sys.maxsize - 1 , beta = sys.maxsize):
         if depth == 0:
@@ -233,5 +231,5 @@ class MinMax:
             values.append(self.minMax(child[0], 3, True))
         self.state.makeMove(children[values.index(max(values))][1])
         
-state = ChessEngine.GameState()
-mm = MinMax(state)
+#state = ChessEngine.GameState()
+#mm = MinMax(state)
