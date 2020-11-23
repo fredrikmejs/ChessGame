@@ -18,6 +18,7 @@ def loadImages():
 
 
 def main():
+    firstTurn = True
     aiwhite = False
     while True:
         playerchoice = input("Do you want white to be ai or human?\n")
@@ -42,9 +43,11 @@ def main():
     while running:
         if (gs.whiteToMove and aiwhite) or (not gs.whiteToMove and not aiwhite):
             print("AI turn")
-            ai = mm.MinMax(gs)
+            ai = mm.MinMax(gs, firstTurn)
             ai.makeMove()
             print("Player Turn")
+            if firstTurn:
+                firstTurn = False
         else:
             for e in p.event.get():
                 if e.type == p.QUIT:
