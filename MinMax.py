@@ -14,23 +14,38 @@ class MinMax:
                              ChessEngine.Move((7, 6), (5, 5), self.state.board),
                              ChessEngine.Move((6, 2), (4, 2), self.state.board)]
         self.numberStates = 0
+        whiteTurn = True if self.state.whiteToMove else False
 
-    def expandChildren(self, state):
+    def expandChildren(self, board):
         possibleMoves = []
         children = []
+        state = ChessEngine.GameState()
+        state.board = board
         possibleMoves = state.getValidMoves()
         for move in possibleMoves:
-            tempState = ChessEngine.GameState()
-            self.copyState(state, tempState)
-            tempState.makeMove(move)
-            children.append((tempState, move))
+            tempBoard = c.deepcopy(board)
+            self.makeChildMove(tempBoard, move)
+            children.append((tempBoard, move))
         return children
 
+    def makeChildMove(self, board, move):
+        board[move.startRow][move.startCol] = '--'
+        board[move.endRow][move.endCol] = move.pieceMoved
+        if move.isPawnPromotion:
+            board[move.endRow][move.endCol] = move.pieceMoved[0] + 'Q'
+        if move.isCastleMove:
+            if move.endCol - move.startCol == 2:  ##Checks if it a king or queen side castle
+                board[move.endRow][move.endCol - 1] = board[move.endRow][move.endCol + 1]
+                board[move.endRow][move.endCol + 1] = '--'
+            else:  # Queen side
+                board[move.endRow][move.endCol + 1] = [move.endRow][move.endCol - 2]  # movs The rock
+                board[move.endRow][move.endCol - 2] = '--'
+
     # evaluation function, values taken from notes.
-    def get_board_value(self, state):
+    def get_board_value(self, board, whitePlayer):
         value = 0.0
         # checks if it's white's turn to move, and sets player.
-        player = "w" if state.whiteToMove else "b"
+        player = "w" if whitePlayer else "b"
         # field values, taken from slides.
         field_values = [
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -47,20 +62,20 @@ class MinMax:
         for index, row in enumerate(rev_field_values):
             rev_field_values[index] = row[::-1]
         if player == 'w':
-            for x, row in enumerate(state.board):
+            for x, row in enumerate(board):
                 for y, piece in enumerate(row):
                     if 'w' in piece:
                         if 'p' in piece:
-                            if state.board[x - 1][y] == "wp":
+                            if board[x - 1][y] == "wp":
                                 value += -8.0
                             else:
                                 value += 100.0 + field_values[x][y]
                         if 'R' in piece:
-                            value += 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                            value += 500.0 + 1.5 * self.protectedRook(x, y, board)
                         if 'B' in piece:
-                            value += 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                            value += 300.0 + 2.0 * self.protectedBishop(x, y, board)
                         if 'Q' in piece:
-                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            mult = self.protectedBishop(x, y, board) + self.protectedRook(x, y, board) - 1
                             value += 900.0 + 1.0 * mult
                         if 'K' in piece:
                             value += 10000.0
@@ -68,36 +83,36 @@ class MinMax:
                             value += 300 + 3.0 * (4 - self.distanceToCenter(y))
                     if 'b' in piece:
                         if 'p' in piece:
-                            if state.board[x + 1][y] == 'bp':
+                            if board[x + 1][y] == 'bp':
                                 value -= -8.0
                             else:
                                 value -= 100.0 + rev_field_values[x][y]
                         if 'R' in piece:
-                            value -= 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                            value -= 500.0 + 1.5 * self.protectedRook(x, y, board)
                         if 'B' in piece:
-                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, board)
                         if 'Q' in piece:
-                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            mult = self.protectedBishop(x, y, board) + self.protectedRook(x, y, board) - 1
                             value -= 900 + 1.0 * mult
                         if 'K' in piece:
                             value -= 10000.0
                         if 'N' in piece:
                             value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
         elif player == 'b':
-            for x, row in enumerate(state.board):
+            for x, row in enumerate(board):
                 for y, piece in enumerate(row):
                     if 'b' in piece:
                         if 'p' in piece:
-                            if state.board[x - 1][y] == "bp":
+                            if board[x - 1][y] == "bp":
                                 value += -8.0
                             else:
                                 value += 100.0 + rev_field_values[x][y]
                         if 'R' in piece:
-                            value += 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                            value += 500.0 + 1.5 * self.protectedRook(x, y, board)
                         if 'B' in piece:
-                            value += 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                            value += 300.0 + 2.0 * self.protectedBishop(x, y, board)
                         if 'Q' in piece:
-                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            mult = self.protectedBishop(x, y, board) + self.protectedRook(x, y, board) - 1
                             value += 900.0 + 1.0 * mult
                         if 'K' in piece:
                             value += 10000.0
@@ -105,16 +120,16 @@ class MinMax:
                             value += 300 + 3.0 * (4 - self.distanceToCenter(y))
                     if 'w' in piece:
                         if 'p' in piece:
-                            if state.board[x + 1][y] == 'wp':
+                            if board[x + 1][y] == 'wp':
                                 value -= -8.0
                             else:
                                 value -= 100.0 + field_values[x][y]
                         if 'R' in piece:
-                            value -= 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                            value -= 500.0 + 1.5 * self.protectedRook(x, y, board)
                         if 'B' in piece:
-                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, board)
                         if 'Q' in piece:
-                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            mult = self.protectedBishop(x, y, board) + self.protectedRook(x, y, board) - 1
                             value -= 900 + 1.0 * mult
                         if 'K' in piece:
                             value -= 10000.0
@@ -211,14 +226,14 @@ class MinMax:
         copy.staleMate = c.deepcopy(original.staleMate)
         copy.checkMate = c.deepcopy(original.checkMate)
 
-    def minMax(self, state, depth, maximizingPlayer, alpha=-sys.maxsize - 1, beta=sys.maxsize):
+    def minMax(self, state, depth, maximizingPlayer, whitePlayer, alpha=-sys.maxsize - 1, beta=sys.maxsize):
         if depth == 0:
-            return self.get_board_value(state)
+            return self.get_board_value(state, whitePlayer)
         elif maximizingPlayer == True:
             value = -sys.maxsize - 1
             children = self.expandChildren(state)
             for child in children:
-                value = max(value, self.minMax(child[0], depth - 1, False, alpha, beta))
+                value = max(value, self.minMax(child[0], depth - 1, False, not whitePlayer, alpha, beta))
                 alpha = max(alpha, value)
                 self.numberStates += 1
                 if alpha >= beta:
@@ -228,7 +243,7 @@ class MinMax:
             value = sys.maxsize
             children = self.expandChildren(state)
             for child in children:
-                value = min(value, self.minMax(child[0], depth - 1, True, alpha, beta))
+                value = min(value, self.minMax(child[0], depth - 1, True, not whitePlayer, alpha, beta))
                 beta = min(beta, value)
                 self.numberStates += 1
                 if beta <= alpha:
@@ -237,10 +252,10 @@ class MinMax:
 
     def makeMove(self):
         if not self.openingMove:
-            children = self.expandChildren(self.state)
+            children = self.expandChildren(c.deepcopy(self.state.board))
             values = []
             for child in children:
-                values.append(self.minMax(child[0], 3, True))
+                values.append(self.minMax(child[0], 3, True, self.state.whiteToMove))
             print(self.numberStates)
             self.numberStates = 0
             self.state.makeMove(children[values.index(max(values))][1])
