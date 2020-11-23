@@ -240,7 +240,7 @@ class MinMax:
             children = self.expandChildren(self.state)
             values = []
             for child in children:
-                values.append(self.minMax(child[0], 3, True))
+                values.append(self.minMax(child[0], 1, True))
             print(self.numberStates)
             self.numberStates = 0
             self.state.makeMove(children[values.index(max(values))][1])
