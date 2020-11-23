@@ -2,8 +2,8 @@ import pygame as p
 import ChessEngine
 import MinMax as mm
 
-WIDTH = 1920
-HEIGHT = 1920
+WIDTH = 700
+HEIGHT = 700
 DIMENSION = 8  # The dimension of a chess board is 8x8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15

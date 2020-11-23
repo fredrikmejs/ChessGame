@@ -9,10 +9,11 @@ class MinMax:
         self.visitedStates = []
         self.state = GameState
         self.openingMove = openingMove
-        self.whiteOpeners = [ChessEngine.Move((6, 4), (4, 4), self.state.board), ChessEngine.Move((6, 3), (4, 3),
-                                                                                                  self.state.board),
+        self.whiteOpeners = [ChessEngine.Move((6, 4), (4, 4), self.state.board), 
+                             ChessEngine.Move((6, 3), (4, 3), self.state.board),
                              ChessEngine.Move((7, 6), (5, 5), self.state.board),
                              ChessEngine.Move((6, 2), (4, 2), self.state.board)]
+        self.numberStates = 0
 
     def expandChildren(self, state):
         possibleMoves = []
@@ -219,6 +220,7 @@ class MinMax:
             for child in children:
                 value = max(value, self.minMax(child[0], depth - 1, False, alpha, beta))
                 alpha = max(alpha, value)
+                self.numberStates += 1
                 if alpha >= beta:
                     break
             return value
@@ -228,6 +230,7 @@ class MinMax:
             for child in children:
                 value = min(value, self.minMax(child[0], depth - 1, True, alpha, beta))
                 beta = min(beta, value)
+                self.numberStates += 1
                 if beta <= alpha:
                     break
             return value
@@ -238,6 +241,8 @@ class MinMax:
             values = []
             for child in children:
                 values.append(self.minMax(child[0], 3, True))
+            print(self.numberStates)
+            self.numberStates = 0
             self.state.makeMove(children[values.index(max(values))][1])
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners))
