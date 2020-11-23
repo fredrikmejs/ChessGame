@@ -99,10 +99,10 @@ class GameState:
 
             if len(moves) == 0:
                 self.checkMate = True
-                if not self.whiteToMove:
-                    print("White won the game")
-                else:
-                    print("Black won the game")
+                #if not self.whiteToMove:
+                    #print("White won the game")
+                #else:
+                    #print("Black won the game")
             return moves
 
         return []
