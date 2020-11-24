@@ -9,21 +9,29 @@ class MinMax:
         self.visitedStates = []
         self.state = GameState
         self.openingMove = openingMove
-        self.whiteOpeners = [ChessEngine.Move((6, 4), (4, 4), self.state.board), 
+        self.whiteOpeners = [ChessEngine.Move((6, 4), (4, 4), self.state.board),
                              ChessEngine.Move((6, 3), (4, 3), self.state.board),
                              ChessEngine.Move((7, 6), (5, 5), self.state.board),
                              ChessEngine.Move((6, 2), (4, 2), self.state.board)]
         self.numberStates = 0
+        self.count = 0
+        self.knownBoards = []
+        self.cutoff = 0
 
     def expandChildren(self, state):
-        possibleMoves = []
         children = []
         possibleMoves = state.getValidMoves()
         for move in possibleMoves:
             tempState = ChessEngine.GameState()
             self.copyState(state, tempState)
             tempState.makeMove(move)
-            children.append((tempState, move))
+            if tempState.board not in self.knownBoards:
+                children.append((tempState, move))
+                self.knownBoards.append(tempState.board)
+                self.count += 1
+            else:
+                self.cutoff += 1
+
         return children
 
     # evaluation function, values taken from notes.
@@ -241,8 +249,13 @@ class MinMax:
             values = []
             for child in children:
                 values.append(self.minMax(child[0], 3, True))
+            print("count = " + str(self.count))
             print(self.numberStates)
+            print("cutoff = " + str(self.cutoff))
             self.numberStates = 0
+            self.count = 0
+            self.cutoff = 0
+            self.knownBoards = []
             self.state.makeMove(children[values.index(max(values))][1])
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners))
@@ -252,5 +265,3 @@ class MinMax:
             elif self.state.board[4][3] == "wp":
                 self.state.makeMove(ChessEngine.Move((1, 3), (3, 3), self.state.board))
 
-# state = ChessEngine.GameState()
-# mm = MinMax(state)
