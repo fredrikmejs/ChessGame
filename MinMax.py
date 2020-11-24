@@ -10,11 +10,10 @@ class MinMax:
         self.state = GameState
         self.openingMove = openingMove
         self.whiteOpeners = [ChessEngine.Move((6, 4), (4, 4), self.state.board), 
-                             ChessEngine.Move((6, 3), (4, 3), self.state.board),
-                             ChessEngine.Move((7, 6), (5, 5), self.state.board),
-                             ChessEngine.Move((6, 2), (4, 2), self.state.board)]
+                             ChessEngine.Move((6, 3), (4, 3), self.state.board)]
         self.numberStates = 0
         whiteTurn = True if self.state.whiteToMove else False
+        self.visitedBoards = []
 
     def expandChildren(self, board):
         possibleMoves = []
@@ -25,7 +24,8 @@ class MinMax:
         for move in possibleMoves:
             tempBoard = c.deepcopy(board)
             self.makeChildMove(tempBoard, move)
-            children.append((tempBoard, move))
+            if tempBoard not in self.visitedBoards:
+                children.append((tempBoard, move))
         return children
 
     def makeChildMove(self, board, move):
@@ -66,75 +66,59 @@ class MinMax:
                 for y, piece in enumerate(row):
                     if 'w' in piece:
                         if 'p' in piece:
-                            if board[x - 1][y] == "wp":
-                                value += -8.0
-                            else:
-                                value += 100.0 + field_values[x][y]
+                            value += 10.0
                         if 'R' in piece:
-                            value += 500.0 + 1.5 * self.protectedRook(x, y, board)
+                            value += 50.0
                         if 'B' in piece:
-                            value += 300.0 + 2.0 * self.protectedBishop(x, y, board)
+                            value += 30.0
                         if 'Q' in piece:
-                            mult = self.protectedBishop(x, y, board) + self.protectedRook(x, y, board) - 1
-                            value += 900.0 + 1.0 * mult
+                            value += 90.0
                         if 'K' in piece:
-                            value += 10000.0
+                            value += 900.0
                         if 'N' in piece:
-                            value += 300 + 3.0 * (4 - self.distanceToCenter(y))
+                            value += 30.0
                     if 'b' in piece:
                         if 'p' in piece:
-                            if board[x + 1][y] == 'bp':
-                                value -= -8.0
-                            else:
-                                value -= 100.0 + rev_field_values[x][y]
+                            value-= 10.0
                         if 'R' in piece:
-                            value -= 500.0 + 1.5 * self.protectedRook(x, y, board)
+                            value -= 50.0
                         if 'B' in piece:
-                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, board)
+                            value -= 30.0
                         if 'Q' in piece:
-                            mult = self.protectedBishop(x, y, board) + self.protectedRook(x, y, board) - 1
-                            value -= 900 + 1.0 * mult
+                            value -= 90.0
                         if 'K' in piece:
-                            value -= 10000.0
+                            value -= 900.0
                         if 'N' in piece:
-                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
+                            value -= 30.0
         elif player == 'b':
             for x, row in enumerate(board):
                 for y, piece in enumerate(row):
                     if 'b' in piece:
                         if 'p' in piece:
-                            if board[x - 1][y] == "bp":
-                                value += -8.0
-                            else:
-                                value += 100.0 + rev_field_values[x][y]
+                            value += 10.0
                         if 'R' in piece:
-                            value += 500.0 + 1.5 * self.protectedRook(x, y, board)
+                            value += 50.0
                         if 'B' in piece:
-                            value += 300.0 + 2.0 * self.protectedBishop(x, y, board)
+                            value += 30.0
                         if 'Q' in piece:
-                            mult = self.protectedBishop(x, y, board) + self.protectedRook(x, y, board) - 1
-                            value += 900.0 + 1.0 * mult
+                            value += 90.0
                         if 'K' in piece:
-                            value += 10000.0
+                            value += 900.0
                         if 'N' in piece:
-                            value += 300 + 3.0 * (4 - self.distanceToCenter(y))
+                            value += 30.0
                     if 'w' in piece:
                         if 'p' in piece:
-                            if board[x + 1][y] == 'wp':
-                                value -= -8.0
-                            else:
-                                value -= 100.0 + field_values[x][y]
+                            value -= 10.0
                         if 'R' in piece:
-                            value -= 500.0 + 1.5 * self.protectedRook(x, y, board)
+                            value -= 50.0
                         if 'B' in piece:
-                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, board)
+                            value -= 30.0
                         if 'Q' in piece:
-                            mult = self.protectedBishop(x, y, board) + self.protectedRook(x, y, board) - 1
-                            value -= 900 + 1.0 * mult
+                            value -= 90.0
                         if 'K' in piece:
-                            value -= 10000.0
+                            value -= 900.0
                         if 'N' in piece:
-                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
+                            value -= 30.0
         return value
 
     def protectedRook(self, x, y, board):
@@ -255,10 +239,11 @@ class MinMax:
             children = self.expandChildren(c.deepcopy(self.state.board))
             values = []
             for child in children:
-                values.append(self.minMax(child[0], 3, True, self.state.whiteToMove))
+                values.append(self.minMax(child[0], 4, True, self.state.whiteToMove))
             print(self.numberStates)
             self.numberStates = 0
             self.state.makeMove(children[values.index(max(values))][1])
+            self.visitedBoards = []
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners))
         elif self.openingMove and not self.state.whiteToMove:
