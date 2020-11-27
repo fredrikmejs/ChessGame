@@ -31,7 +31,7 @@ class GameState:
     def switchWhiteToMove(self):
         self.whiteToMove = not self.whiteToMove
 
-    def makeMove(self, move):
+    def makeMove(self, move, isMoveMade):
         self.board[move.startRow][move.startCol] = "--"  # Set the moved from postion empty
         self.board[move.endRow][move.endCol] = move.pieceMoved  # move the brick to the given position
         self.moveLog.append(move)
@@ -47,37 +47,38 @@ class GameState:
             self.board[move.endRow][move.endCol] = move.pieceMoved[0] + 'Q'
 
         if move.isCastleMove:
-            if move.endCol - move.startCol == 2:  # Checks if it a king or queen side castle
+            if move.endCol - move.startCol == + 2:  # Checks if it a king or queen side castle
                 self.board[move.endRow][move.endCol - 1] = self.board[move.endRow][move.endCol + 1]
                 self.board[move.endRow][move.endCol + 1] = '--'
-            else:  # King side
+            else:  # Queen side
                 self.board[move.endRow][move.endCol + 1] = self.board[move.endRow][move.endCol - 2]  # moves The rock
                 self.board[move.endRow][move.endCol - 2] = '--'
 
-        self.updateCastleRights(move)
+        self.updateCastleRights(move, isMoveMade)
         self.castleRightsLog.append(
             CastleRights(self.currentCastlingRight.whiteKSide, self.currentCastlingRight.blackKSide,
                          self.currentCastlingRight.whiteQSide, self.currentCastlingRight.blackQSide))
 
-    def updateCastleRights(self, move):
-        if move.pieceMoved == 'wK':
-            self.currentCastlingRight.whiteKSide = False
-            self.currentCastlingRight.whiteQSide = False
-        elif move.pieceMoved == 'bK':
-            self.currentCastlingRight.blackKSide = False
-            self.currentCastlingRight.blackQSide = False
-        elif move.pieceMoved == 'wR':
-            if move.startRow == 7:  # Checks if it has moved or not and if it is left or right
+    def updateCastleRights(self, move, isMoveMade):
+        if isMoveMade:
+            if move.pieceMoved == 'wK':
+                self.currentCastlingRight.whiteKSide = False
+                self.currentCastlingRight.whiteQSide = False
+            elif move.pieceMoved == 'bK':
+                self.currentCastlingRight.blackKSide = False
+                self.currentCastlingRight.blackQSide = False
+            elif move.pieceMoved == 'wR':
+                if move.startRow == 7:  # Checks if it has moved or not and if it is left or right
+                    if move.startCol == 0:
+                        self.currentCastlingRight.whiteQSide = False
+                    elif move.startCol == 7:
+                        self.currentCastlingRight.whiteKSide = False
+            elif move.pieceMoved == 'bR':
                 if move.startCol == 0:
-                    self.currentCastlingRight.whiteQSide = False
-                elif move.startCol == 7:
-                    self.currentCastlingRight.whiteKSide = False
-        elif move.pieceMoved == 'bR':
-            if move.startCol == 0:
-                if move.startCol == 0:
-                    self.currentCastlingRight.blackQSide = False
-                elif move.startCol == 7:
-                    self.currentCastlingRight.blackKSide = False
+                    if move.startCol == 0:
+                        self.currentCastlingRight.blackQSide = False
+                    elif move.startCol == 7:
+                        self.currentCastlingRight.blackKSide = False
 
     def getValidMoves(self):
         if not self.checkMate:
@@ -92,7 +93,7 @@ class GameState:
             self.getCastleMoves(kingRow, kingCol, moves)
 
             for i in range(len(moves) - 1, - 1, - 1):
-                self.makeMove(moves[i])
+                self.makeMove(moves[i], False)
                 self.whiteToMove = not self.whiteToMove  # Make move switches the turn
                 if self.inCheck():
                     moves.remove(moves[i])
@@ -384,6 +385,7 @@ class GameState:
     def undoMove(self):
         if len(self.moveLog) != 0:
             move = self.moveLog.pop()
+            self.castleRightsLog.pop()
             self.board[move.startRow][move.startCol] = move.pieceMoved
             self.board[move.endRow][move.endCol] = move.pieceCaptured
             self.whiteToMove = not self.whiteToMove  # switches the turn back

@@ -45,7 +45,7 @@ def main():
         if not gameWon:
             if gs.checkMate:
                 gameWon = True
-                if gs.whiteToMove:
+                if not gs.whiteToMove:
                     print("White has won the game")
                 else:
                     print("Black has won the game")
@@ -76,7 +76,7 @@ def main():
                             move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                             for i in range(len(validMoves)):
                                 if move == validMoves[i]:
-                                    gs.makeMove(validMoves[i])
+                                    gs.makeMove(validMoves[i], True)
                                     moveMade = True
                                     sqSelected = ()
                                     playerClicks = []
