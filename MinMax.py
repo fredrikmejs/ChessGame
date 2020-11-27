@@ -238,6 +238,8 @@ class MinMax:
                 self.numberStates += 1
                 if beta <= self.alpha:
                     break
+            if len(children) == 0:
+                return -1000
             return value
         else:
             value = sys.maxsize
@@ -248,6 +250,8 @@ class MinMax:
                 self.numberStates += 1
                 if beta <= self.alpha:
                     break
+            if len(children) == 0:
+                return -1000
             return value
 
     def makeMove(self):
@@ -255,7 +259,7 @@ class MinMax:
             children = self.expandChildren(self.state)
             values = []
             for child in children:
-                values.append(self.minMax(child[0], 2, True))
+                values.append(self.minMax(child[0], 3, True))
             print("number of states: " + str(self.numberStates))
             print("Max value " + str(values[values.index(max(values))]))
             self.numberStates = 0
