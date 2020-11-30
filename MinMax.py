@@ -1,6 +1,8 @@
 import ChessEngine
 import sys
 import random
+import threading
+import time
 
 
 class MinMax:
@@ -15,7 +17,15 @@ class MinMax:
         self.numberStates = 0
         self.knownBoards = []
         self.isWhite = isWhite
+        self.ztable = [[[random.randint(1, 2**64-1) for i in range(12)]for j in range(8)]for k in range(8)]
+        self.hashvalue = self.computeHash(self.state.board)
+        self.hashtable = dict()
+        self.timeUp = False
+        self.timer = threading.Timer(29.0, self.changeTimer)
+        self.timer.start()
 
+    def changeTimer(self):
+        self.timeUp = not self.timeUp
     # evaluation function, values taken from notes.
     def get_board_value(self, state, move):
         value = 0.0
@@ -232,10 +242,20 @@ class MinMax:
         bestMoveValue = -(sys.maxsize - 1)
         bestMove = None
         for move in possibleMoves:
-            self.numberStates += 1
-            state.makeMove(move, False)
-            value = max(bestMoveValue, self.minimax(state, depth-1, -(sys.maxsize-1), sys.maxsize, not isMaximizing, move))
-            state.undoMove()
+            if self.timeUp:
+                return None
+            newhash = self.hashvalue
+            piece = move.pieceMoved
+            newhash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
+            if newhash not in self.hashtable:
+                state.makeMove(move, False)
+                value = max(bestMoveValue, self.minimax(state, depth-1, -(sys.maxsize-1), sys.maxsize, not isMaximizing, move))
+                piece = state.board[move.endRow][move.endCol]
+                newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
+                self.hashtable[newhash] = value
+                state.undoMove()
+            else:
+                value = self.hashtable.get(newhash)
             if value > bestMoveValue:
                 bestMoveValue = value
                 bestMove = move
@@ -248,10 +268,20 @@ class MinMax:
         if isMaximizing:
             value = -(sys.maxsize - 1)
             for move in possibleMoves:
-                self.numberStates += 1
-                state.makeMove(move, False)
-                value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
-                state.undoMove()
+                if self.timeUp:
+                    return -1
+                newhash = self.hashvalue
+                piece = move.pieceMoved
+                newhash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
+                if newhash not in self.hashtable:
+                    state.makeMove(move, False)
+                    value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
+                    piece = state.board[move.endRow][move.endCol]
+                    newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
+                    self.hashtable[newhash] = value
+                    state.undoMove()
+                else:
+                    value = self.hashtable.get(newhash)
                 alpha = max(alpha, value)
                 if alpha >= beta:
                     break
@@ -259,10 +289,20 @@ class MinMax:
         else:
             value = sys.maxsize
             for move in possibleMoves:
-                self.numberStates += 1
-                state.makeMove(move, False)
-                value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
-                state.undoMove()
+                if self.timeUp:
+                    return -1
+                newhash = self.hashvalue
+                piece = move.pieceMoved
+                newhash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
+                if newhash not in self.hashtable:
+                    state.makeMove(move, False)
+                    value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
+                    piece = state.board[move.endRow][move.endCol]
+                    newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
+                    self.hashtable[newhash] = value
+                    state.undoMove()
+                else:
+                    value = self.hashtable.get(newhash)
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
@@ -270,9 +310,17 @@ class MinMax:
 
     def makeMove(self):
         if not self.openingMove:
-            a = self.minimaxRoot(self.state, 1, True)
-            self.state.makeMove(a, True)
-            print("Number of states: " + str(self.numberStates))
+            chosenMove = None
+            finalMove = None
+            depth = 1
+            while not self.timeUp:
+                chosenMove = self.minimaxRoot(self.state, depth, True)
+                if not self.timeUp:
+                    finalMove = chosenMove
+                depth += 1
+            self.state.makeMove(finalMove, True)
+            print("Move made: (" + str(finalMove) + ")")
+            print("Depth = " + str(depth))
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners), True)
         elif self.openingMove and not self.state.whiteToMove:
@@ -281,3 +329,39 @@ class MinMax:
             elif self.state.board[4][3] == "wp":
                 self.state.makeMove(ChessEngine.Move((1, 3), (3, 3), self.state.board), True)
 
+    def index(self, piece):
+        if piece == 'wp':
+            return 0
+        if piece == 'wQ':
+            return 1
+        if piece == "wK":
+            return 2
+        if piece == "wB":
+            return 3
+        if piece == "wN":
+            return 4
+        if piece == "wR":
+            return 5
+        if piece == "bp":
+            return 6
+        if piece == "bQ":
+            return 7
+        if piece == "bK":
+            return 8
+        if piece == "bB":
+            return 9
+        if piece == "bN":
+            return 10
+        if piece == "bR":
+            return 11
+        else:
+            return -1
+
+    def computeHash(self, board):
+        hash = 0
+        for i in range(8):
+            for j in range(8):
+                if board[i][j] != '--':
+                    piece = self.index(board[i][j])
+                    hash ^= self.ztable[i][j][piece]
+        return hash
