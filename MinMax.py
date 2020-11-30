@@ -235,7 +235,7 @@ class MinMax:
                 self.hashtable[newhash] = (value, move)
                 state.undoMove()
             else:
-                value = self.hashtable.get(newhash)
+                value = self.hashtable.get(newhash)[0]
             if value > bestMoveValue:
                 bestMoveValue = value
                 bestMove = move
@@ -265,7 +265,7 @@ class MinMax:
                     self.hashtable[newhash] = (value, move)
                     state.undoMove()
                 else:
-                    value = self.hashtable.get(newhash)
+                    value = self.hashtable.get(newhash)[0]
                 alpha = max(alpha, value)
                 if alpha >= beta:
                     break
@@ -286,7 +286,7 @@ class MinMax:
                     self.hashtable[newhash] = (value, move)
                     state.undoMove()
                 else:
-                    value = self.hashtable.get(newhash)
+                    value = self.hashtable.get(newhash)[0]
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
