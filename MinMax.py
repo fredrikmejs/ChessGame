@@ -232,14 +232,17 @@ class MinMax:
                 value = max(bestMoveValue, self.minimax(state, depth-1, -(sys.maxsize-1), sys.maxsize, not isMaximizing))
                 piece = state.board[move.endRow][move.endCol]
                 newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                self.hashtable[newhash] = value
+                self.hashtable[newhash] = (value, move)
                 state.undoMove()
             else:
                 value = self.hashtable.get(newhash)
             if value > bestMoveValue:
                 bestMoveValue = value
                 bestMove = move
-        self.hashtable[self.hashvalue] = value
+        if bestMove == None:
+            value = self.hashtable.get(self.hashvalue)[0]
+            bestMove = self.hashtable.get(self.hashvalue)[1]
+        self.hashtable[self.hashvalue] = (value, bestMove)
         return bestMove
                 
     def minimax(self, state, depth, alpha, beta, isMaximizing):
@@ -259,7 +262,7 @@ class MinMax:
                     value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing))
                     piece = state.board[move.endRow][move.endCol]
                     newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                    self.hashtable[newhash] = value
+                    self.hashtable[newhash] = (value, move)
                     state.undoMove()
                 else:
                     value = self.hashtable.get(newhash)
@@ -280,7 +283,7 @@ class MinMax:
                     value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing))
                     piece = state.board[move.endRow][move.endCol]
                     newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                    self.hashtable[newhash] = value
+                    self.hashtable[newhash] = (value, move)
                     state.undoMove()
                 else:
                     value = self.hashtable.get(newhash)
@@ -296,6 +299,7 @@ class MinMax:
             depth = 1
             while not self.timeUp:
                 chosenMove = self.minimaxRoot(self.state, depth, True)
+                print(testPrint)
                 if not self.timeUp:
                     finalMove = chosenMove
                 depth += 1
@@ -343,4 +347,8 @@ class MinMax:
                 if board[i][j] != '--':
                     piece = self.index(board[i][j])
                     hash ^= self.ztable[i][j][piece]
+<<<<<<< HEAD
         return hash
+=======
+        return hash
+>>>>>>> a8e4c4faf9aa484b7317c3f8de3392e571c4d437
