@@ -254,7 +254,7 @@ class MinMax:
                 self.hashtable[newhash] = (value, move)
                 state.undoMove()
             else:
-                value = self.hashtable.get(newhash)
+                value = self.hashtable.get(newhash)[0]
             if value > bestMoveValue:
                 bestMoveValue = value
                 bestMove = move
@@ -266,7 +266,7 @@ class MinMax:
                 
     def minimax(self, state, depth, alpha, beta, isMaximizing, move):
         if depth == 0:
-            return self.get_board_value(state, move)
+            return self.get_board_value(state)
         possibleMoves = state.getValidMoves(False)
         if isMaximizing:
             value = -(sys.maxsize - 1)
@@ -284,7 +284,7 @@ class MinMax:
                     self.hashtable[newHash] = (value, move)
                     state.undoMove()
                 else:
-                    value = self.hashtable.get(newHash)
+                    value = self.hashtable.get(newHash)[0]
                 alpha = max(alpha, value)
                 if alpha >= beta:
                     break
@@ -305,7 +305,7 @@ class MinMax:
                     self.hashtable[newHash] = (value, move)
                     state.undoMove()
                 else:
-                    value = self.hashtable.get(newHash)
+                    value = self.hashtable.get(newHash)[0]
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
