@@ -347,4 +347,8 @@ class MinMax:
                 if board[i][j] != '--':
                     piece = self.index(board[i][j])
                     hash ^= self.ztable[i][j][piece]
+<<<<<<< HEAD
         return hash
+=======
+        return hash
+>>>>>>> a8e4c4faf9aa484b7317c3f8de3392e571c4d437
