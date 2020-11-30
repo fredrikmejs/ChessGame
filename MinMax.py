@@ -14,7 +14,6 @@ class MinMax:
                              ChessEngine.Move((6, 3), (4, 3), self.state.board),
                              ChessEngine.Move((7, 6), (5, 5), self.state.board),
                              ChessEngine.Move((6, 2), (4, 2), self.state.board)]
-        self.numberStates = 0
         self.knownBoards = []
         self.isWhite = isWhite
         self.ztable = [[[random.randint(1, 2**64-1) for i in range(12)]for j in range(8)]for k in range(8)]
@@ -252,13 +251,17 @@ class MinMax:
                 value = max(bestMoveValue, self.minimax(state, depth-1, -(sys.maxsize-1), sys.maxsize, not isMaximizing, move))
                 piece = state.board[move.endRow][move.endCol]
                 newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                self.hashtable[newhash] = value
+                self.hashtable[newhash] = (value, move)
                 state.undoMove()
             else:
                 value = self.hashtable.get(newhash)
             if value > bestMoveValue:
                 bestMoveValue = value
                 bestMove = move
+        if bestMove == None:
+            value = self.hashtable.get(self.hashvalue)[0]
+            bestMove = self.hashtable.get(self.hashvalue)[1]
+        self.hashtable[self.hashvalue] = (value, bestMove)
         return bestMove
                 
     def minimax(self, state, depth, alpha, beta, isMaximizing, move):
@@ -278,7 +281,7 @@ class MinMax:
                     value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
                     piece = state.board[move.endRow][move.endCol]
                     newHash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                    self.hashtable[newHash] = value
+                    self.hashtable[newHash] = (value, move)
                     state.undoMove()
                 else:
                     value = self.hashtable.get(newHash)
@@ -299,7 +302,7 @@ class MinMax:
                     value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
                     piece = state.board[move.endRow][move.endCol]
                     newHash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                    self.hashtable[newHash] = value
+                    self.hashtable[newHash] = (value, move)
                     state.undoMove()
                 else:
                     value = self.hashtable.get(newHash)
