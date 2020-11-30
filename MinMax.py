@@ -1,6 +1,5 @@
 import ChessEngine
 import sys
-import copy as c
 import random
 
 
@@ -15,22 +14,6 @@ class MinMax:
                              ChessEngine.Move((6, 2), (4, 2), self.state.board)]
         self.numberStates = 0
         self.knownBoards = []
-        self.alpha = -sys.maxsize - 1
-
-    def expandChildren(self, state):
-        children = []
-        possibleMoves = state.getValidMoves()
-        for move in possibleMoves:
-            tempState = ChessEngine.GameState()
-            self.copyState(state, tempState)
-            tempState.makeMove(move, False)
-            if tempState.board not in self.knownBoards:
-                children.append((tempState, move))
-                self.knownBoards.append(tempState.board)
-            elif len(possibleMoves) <= 9:
-                children.append((tempState, move))
-
-        return children
 
     # evaluation function, values taken from notes.
     def get_board_value(self, state):
@@ -216,8 +199,6 @@ class MinMax:
         elif y < 4:
             distance = 3 - y
         return distance
-
-    def copyState(self, original, copy):
         copy.board = c.deepcopy(original.board)
         copy.whiteToMove = c.deepcopy(original.whiteToMove)
         copy.moveLog = c.deepcopy(original.moveLog)
@@ -226,46 +207,51 @@ class MinMax:
         copy.staleMate = c.deepcopy(original.staleMate)
         copy.checkMate = c.deepcopy(original.checkMate)
 
-    def minMax(self, state, depth, maximizingPlayer, beta=sys.maxsize):
+    def minimaxRoot(self, state, depth, isMaximizing):
+        possibleMoves = state.getValidMoves(False)
+        bestMoveValue = -(sys.maxsize - 1)
+        bestMove = None
+        for move in possibleMoves:
+            self.numberStates += 1
+            state.makeMove(move, False)
+            value = max(bestMoveValue, self.minimax(state, depth-1, -(sys.maxsize-1), sys.maxsize, not isMaximizing))
+            state.undoMove()
+            if value > bestMoveValue:
+                bestMoveValue = value
+                bestMove = move
+        return bestMove
+                
+    def minimax(self, state, depth, alpha, beta, isMaximizing):
         if depth == 0:
             return self.get_board_value(state)
-        elif maximizingPlayer:
-            value = -sys.maxsize - 1
-            children = self.expandChildren(state)
-            for child in children:
-                value = max(value, self.minMax(child[0], depth - 1, False, beta))
-                self.alpha = max(self.alpha, value)
+        possibleMoves = state.getValidMoves(False)
+        if isMaximizing:
+            value = -(sys.maxsize - 1)
+            for move in possibleMoves:
                 self.numberStates += 1
-                if beta <= self.alpha:
+                state.makeMove(move, False)
+                value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing))
+                state.undoMove()
+                alpha = max(alpha, value)
+                if alpha >= beta:
                     break
-            if len(children) == 0:
-                return -1000
             return value
         else:
             value = sys.maxsize
-            children = self.expandChildren(state)
-            for child in children:
-                value = min(value, self.minMax(child[0], depth - 1, False, beta))
-                beta = min(beta, value)
+            for move in possibleMoves:
                 self.numberStates += 1
-                if beta <= self.alpha:
+                state.makeMove(move, False)
+                value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing))
+                state.undoMove()
+                beta = min(beta, value)
+                if beta <= alpha:
                     break
-            if len(children) == 0:
-                return -1000
             return value
 
     def makeMove(self):
         if not self.openingMove:
-            children = self.expandChildren(self.state)
-            values = []
-            for child in children:
-                values.append(self.minMax(child[0], 3, True))
-            print("number of states: " + str(self.numberStates))
-            print("Max value " + str(values[values.index(max(values))]))
-            self.numberStates = 0
-            self.knownBoards = []
-            self.alpha = -sys.maxsize - 1
-            self.state.makeMove(children[values.index(max(values))][1], True)
+            self.state.makeMove(self.minimaxRoot(self.state, 3, True), True)
+            print("Number of states: " + str(self.numberStates))
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners), True)
         elif self.openingMove and not self.state.whiteToMove:
