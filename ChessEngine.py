@@ -46,7 +46,7 @@ class GameState:
         if move.isPawnPromotion:
             self.board[move.endRow][move.endCol] = move.pieceMoved[0] + 'Q'
 
-        if move.isCastleMove:
+        if move.isCastleMove and isMoveMade:
             if move.endCol - move.startCol == + 2:  # Checks if it a king or queen side castle
                 self.board[move.endRow][move.endCol - 1] = self.board[move.endRow][move.endCol + 1]
                 self.board[move.endRow][move.endCol + 1] = '--'
@@ -80,7 +80,7 @@ class GameState:
                     elif move.startCol == 7:
                         self.currentCastlingRight.blackKSide = False
 
-    def getValidMoves(self):
+    def getValidMoves(self, isNotAI):
         if not self.checkMate:
             moves = self.getAllPossibleMoves()
             if self.whiteToMove:
@@ -99,7 +99,7 @@ class GameState:
                     moves.remove(moves[i])
                 self.whiteToMove = not self.whiteToMove
                 self.undoMove()
-            if len(moves) == 0:
+            if len(moves) == 0 and isNotAI:
                 self.checkMate = True
             return moves
 
@@ -362,7 +362,7 @@ class GameState:
                 if self.board[r][c - 1] == '--' and self.board[r][c - 2] == '--':
                     if not self.squareUnderAttack(r, c + 1) and not self.squareUnderAttack(r, c + 2):
                         moves.append(Move((r, c), (r, c - 2), self.board, isCastleMove=True))
-            if c + 1 < 8 and c + 2 < 8:
+            if c + 3 < 8:
                 if self.board[r][c + 1] == '--' and self.board[r][c + 2] == '--' and self.board[r][c + 3]:
                     if not self.squareUnderAttack(r, c + 1) and not self.squareUnderAttack(r, c + 2):
                         moves.append(Move((r, c), (r, c + 2), self.board, isCastleMove=True))

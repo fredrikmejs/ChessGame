@@ -2,8 +2,8 @@ import pygame as p
 import ChessEngine
 import MinMax as mm
 
-WIDTH = 1500
-HEIGHT = 1500
+WIDTH = 700
+HEIGHT = 700
 DIMENSION = 8  # The dimension of a chess board is 8x8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
@@ -34,7 +34,7 @@ def main():
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     gs = ChessEngine.GameState()
-    validMoves = gs.getValidMoves()
+    validMoves = gs.getValidMoves(True)
     moveMade = False
     loadImages()
     running = True
@@ -56,7 +56,7 @@ def main():
                 print("Player Turn")
                 if firstTurn:
                     firstTurn = False
-                validMoves = gs.getValidMoves()
+                validMoves = gs.getValidMoves(True)
             else:
                 for e in p.event.get():
                     if e.type == p.QUIT:
@@ -89,7 +89,7 @@ def main():
                             gs.undoMove()
                             moveMade = True
             if moveMade:
-                validMoves = gs.getValidMoves()
+                validMoves = gs.getValidMoves(True)
                 moveMade = False
 
         drawGameState(screen, gs)
