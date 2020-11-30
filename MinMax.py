@@ -299,7 +299,6 @@ class MinMax:
             depth = 1
             while not self.timeUp:
                 chosenMove = self.minimaxRoot(self.state, depth, True)
-                print(testPrint)
                 if not self.timeUp:
                     finalMove = chosenMove
                 depth += 1
