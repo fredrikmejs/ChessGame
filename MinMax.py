@@ -21,7 +21,7 @@ class MinMax:
         self.hashvalue = self.computeHash(self.state.board)
         self.hashtable = dict()
         self.timeUp = False
-        self.timer = threading.Timer(29.0, self.changeTimer)
+        self.timer = threading.Timer(20.0, self.changeTimer)
         self.timer.start()
 
     def changeTimer(self):
@@ -270,18 +270,18 @@ class MinMax:
             for move in possibleMoves:
                 if self.timeUp:
                     return -1
-                newhash = self.hashvalue
+                newHash = self.hashvalue
                 piece = move.pieceMoved
-                newhash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
-                if newhash not in self.hashtable:
+                newHash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
+                if newHash not in self.hashtable:
                     state.makeMove(move, False)
                     value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
                     piece = state.board[move.endRow][move.endCol]
-                    newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                    self.hashtable[newhash] = value
+                    newHash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
+                    self.hashtable[newHash] = value
                     state.undoMove()
                 else:
-                    value = self.hashtable.get(newhash)
+                    value = self.hashtable.get(newHash)
                 alpha = max(alpha, value)
                 if alpha >= beta:
                     break
@@ -291,18 +291,18 @@ class MinMax:
             for move in possibleMoves:
                 if self.timeUp:
                     return -1
-                newhash = self.hashvalue
+                newHash = self.hashvalue
                 piece = move.pieceMoved
-                newhash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
-                if newhash not in self.hashtable:
+                newHash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
+                if newHash not in self.hashtable:
                     state.makeMove(move, False)
                     value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
                     piece = state.board[move.endRow][move.endCol]
-                    newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                    self.hashtable[newhash] = value
+                    newHash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
+                    self.hashtable[newHash] = value
                     state.undoMove()
                 else:
-                    value = self.hashtable.get(newhash)
+                    value = self.hashtable.get(newHash)
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
@@ -318,9 +318,9 @@ class MinMax:
                 if not self.timeUp:
                     finalMove = chosenMove
                 depth += 1
-            self.state.makeMove(finalMove, True)
-            print("Move made: (" + str(finalMove) + ")")
+
             print("Depth = " + str(depth))
+            self.state.makeMove(finalMove, True)
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners), True)
         elif self.openingMove and not self.state.whiteToMove:
