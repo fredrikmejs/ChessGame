@@ -17,7 +17,7 @@ class MinMax:
         self.isWhite = isWhite
 
     # evaluation function, values taken from notes.
-    def get_board_value(self, state):
+    def get_board_value(self, state, move):
         value = 0.0
         # checks if it's white's turn to move, and sets player.
         player = "w" if self.isWhite else "b"
@@ -58,6 +58,11 @@ class MinMax:
                             value += 300 + 3.0 * (4 - self.distanceToCenter(y))
                         elif state.checkMate:
                             value += 2500
+                        if state.isAiMate:
+                            value += 20000
+                        if move.isCastleMove:
+                            value += 16
+                            state.castleLastTurnWhite = False
 
                     if 'b' in piece:
                         if 'p' in piece:
@@ -78,6 +83,11 @@ class MinMax:
                             value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
                         elif state.checkMate:
                             value -= 2500
+                        if state.isAiMate:
+                            value -= 20000
+                        if move.isCastleMove:
+                            value -= 16
+                            state.castleLastTurnBlack = False
         else:
             for x, row in enumerate(state.board):
                 for y, piece in enumerate(row):
@@ -100,6 +110,12 @@ class MinMax:
                             value += 300 + 3.0 * (4 - self.distanceToCenter(y))
                         elif state.checkMate:
                             value += 2500
+                        if state.isAiMate:
+                            value += 20000
+                        if move.isCastleMove:
+                            value += 16
+                            move.isCastleMove = False
+
                     if 'w' in piece:
                         if 'p' in piece:
                             if state.board[x + 1][y] == 'wp':
@@ -117,8 +133,11 @@ class MinMax:
                             value -= 10000.0
                         elif 'N' in piece:
                             value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        elif state.checkMate:
-                            value -= 2500
+                        if state.isAiMate:
+                            value -= 20000
+                        if move.isCastleMove:
+                            value -= 16
+                            state.castleLastTurnWhite = False
         return value
 
     def protectedRook(self, x, y, board):
@@ -215,23 +234,23 @@ class MinMax:
         for move in possibleMoves:
             self.numberStates += 1
             state.makeMove(move, False)
-            value = max(bestMoveValue, self.minimax(state, depth-1, -(sys.maxsize-1), sys.maxsize, not isMaximizing))
+            value = max(bestMoveValue, self.minimax(state, depth-1, -(sys.maxsize-1), sys.maxsize, not isMaximizing, move))
             state.undoMove()
             if value > bestMoveValue:
                 bestMoveValue = value
                 bestMove = move
         return bestMove
                 
-    def minimax(self, state, depth, alpha, beta, isMaximizing):
+    def minimax(self, state, depth, alpha, beta, isMaximizing, move):
         if depth == 0:
-            return self.get_board_value(state)
+            return self.get_board_value(state, move)
         possibleMoves = state.getValidMoves(False)
         if isMaximizing:
             value = -(sys.maxsize - 1)
             for move in possibleMoves:
                 self.numberStates += 1
                 state.makeMove(move, False)
-                value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing))
+                value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
                 state.undoMove()
                 alpha = max(alpha, value)
                 if alpha >= beta:
@@ -242,7 +261,7 @@ class MinMax:
             for move in possibleMoves:
                 self.numberStates += 1
                 state.makeMove(move, False)
-                value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing))
+                value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
                 state.undoMove()
                 beta = min(beta, value)
                 if beta <= alpha:
@@ -251,7 +270,8 @@ class MinMax:
 
     def makeMove(self):
         if not self.openingMove:
-            self.state.makeMove(self.minimaxRoot(self.state, 4, True), True)
+            a = self.minimaxRoot(self.state, 1, True)
+            self.state.makeMove(a, True)
             print("Number of states: " + str(self.numberStates))
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners), True)

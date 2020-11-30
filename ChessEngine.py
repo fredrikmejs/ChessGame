@@ -1,3 +1,4 @@
+import  ChessGame as chessGame
 class GameState:
     def __init__(self):
         # Creates the board
@@ -22,6 +23,7 @@ class GameState:
         self.blackKingLoc = (0, 4)
         self.checkMate = False
         self.staleMate = False
+        self.isAiMate = False
 
         self.currentCastlingRight = CastleRights(True, True, True, True)
         self.castleRightsLog = [CastleRights(self.currentCastlingRight.whiteKSide, self.currentCastlingRight.blackKSide,
@@ -46,7 +48,7 @@ class GameState:
         if move.isPawnPromotion:
             self.board[move.endRow][move.endCol] = move.pieceMoved[0] + 'Q'
 
-        if move.isCastleMove and isMoveMade:
+        if move.isCastleMove:
             if move.endCol - move.startCol == + 2:  # Checks if it a king or queen side castle
                 self.board[move.endRow][move.endCol - 1] = self.board[move.endRow][move.endCol + 1]
                 self.board[move.endRow][move.endCol + 1] = '--'
@@ -80,7 +82,7 @@ class GameState:
                     elif move.startCol == 7:
                         self.currentCastlingRight.blackKSide = False
 
-    def getValidMoves(self, isNotAI):
+    def getValidMoves(self, isAI):
         if not self.checkMate:
             moves = self.getAllPossibleMoves()
             if self.whiteToMove:
@@ -99,8 +101,10 @@ class GameState:
                     moves.remove(moves[i])
                 self.whiteToMove = not self.whiteToMove
                 self.undoMove()
-            if len(moves) == 0 and isNotAI:
+            if len(moves) == 0 and not isAI:
                 self.checkMate = True
+            elif len(moves) == 0 and isAI:
+                self.isAiMate = True
             return moves
 
         return []
@@ -358,13 +362,17 @@ class GameState:
         if (self.whiteToMove and self.currentCastlingRight.whiteKSide) or (
                 not self.whiteToMove and self.currentCastlingRight.blackKSide):
             if c - 1 > 0 and c - 2 > 0:
-                if self.board[r][c - 1] == '--' and self.board[r][c - 2] == '--':
-                    if not self.squareUnderAttack(r, c + 1) and not self.squareUnderAttack(r, c + 2):
-                        moves.append(Move((r, c), (r, c - 2), self.board, isCastleMove=True))
+                if (self.whiteToMove and self.whiteKingLoc == (7, 4)) or (not self.whiteToMove and
+                                                                          self.blackKingLoc == (0, 4)):
+                    if self.board[r][c - 1] == '--' and self.board[r][c - 2] == '--':
+                        if not self.squareUnderAttack(r, c - 1) and not self.squareUnderAttack(r, c - 2):
+                            moves.append(Move((r, c), (r, c - 2), self.board, isCastleMove=True))
             if c + 3 < 8:
-                if self.board[r][c + 1] == '--' and self.board[r][c + 2] == '--' and self.board[r][c + 3]:
-                    if not self.squareUnderAttack(r, c + 1) and not self.squareUnderAttack(r, c + 2):
-                        moves.append(Move((r, c), (r, c + 2), self.board, isCastleMove=True))
+                if (self.whiteToMove and self.whiteKingLoc == (7, 4)) or (not self.whiteToMove and
+                                                                          self.blackKingLoc == (0, 4)):
+                    if self.board[r][c + 1] == '--' and self.board[r][c + 2] == '--' and self.board[r][c + 3]:
+                        if not self.squareUnderAttack(r, c + 1) and not self.squareUnderAttack(r, c + 2):
+                            moves.append(Move((r, c), (r, c + 2), self.board, isCastleMove=True))
 
     def inCheck(self):
         if self.whiteToMove:
@@ -392,6 +400,16 @@ class GameState:
                 self.whiteKingLoc = (move.startRow, move.startCol)
             elif move.pieceMoved == 'bK':
                 self.blackKingLoc = (move.startRow, move.startCol)
+            if self.isAiMate:
+                self.isAiMate = False
+
+            if move.isCastleMove:
+                if move.endCol - move.startCol == 2: #Kingside
+                    self.board[move.endRow][move.endCol +1] = self.board[move.endRow][move.endCol - 1]
+                    self.board[move.endRow][move.endCol - 1] = '--'
+                else: #Queenside
+                    self.board[move.endRow][move.endCol - 2] = self.board[move.endRow][move.endCol + 1]
+                    self.board[move.endRow][move.endCol + 1] = '--'
 
 
 # Class is for data storage
