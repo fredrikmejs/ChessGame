@@ -344,6 +344,3 @@ class MinMax:
                     piece = self.index(board[i][j])
                     hash ^= self.ztable[i][j][piece]
         return hash
-
-gs = ChessEngine.GameState()
-mm = MinMax(gs, True, True)
