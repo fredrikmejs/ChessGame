@@ -2,8 +2,8 @@ import pygame as p
 import ChessEngine
 import MinMax as mm
 
-WIDTH = 700
-HEIGHT = 700
+WIDTH = 1920
+HEIGHT = 1920
 DIMENSION = 8  # The dimension of a chess board is 8x8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
@@ -51,7 +51,7 @@ def main():
                     print("Black has won the game")
             elif (gs.whiteToMove and aiWhite) or (not gs.whiteToMove and not aiWhite):
                 print("AI turn")
-                ai = mm.MinMax(gs, firstTurn)
+                ai = mm.MinMax(gs, firstTurn, gs.whiteToMove)
                 ai.makeMove()
                 print("Player Turn")
                 if firstTurn:

@@ -4,7 +4,7 @@ import random
 
 
 class MinMax:
-    def __init__(self, GameState, openingMove):
+    def __init__(self, GameState, openingMove, isWhite):
         self.visitedStates = []
         self.state = GameState
         self.openingMove = openingMove
@@ -14,12 +14,13 @@ class MinMax:
                              ChessEngine.Move((6, 2), (4, 2), self.state.board)]
         self.numberStates = 0
         self.knownBoards = []
+        self.isWhite = isWhite
 
     # evaluation function, values taken from notes.
     def get_board_value(self, state):
         value = 0.0
         # checks if it's white's turn to move, and sets player.
-        player = "w" if state.whiteToMove else "b"
+        player = "w" if self.isWhite else "b"
         # field values, taken from slides.
         field_values = [
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -41,67 +42,6 @@ class MinMax:
                     if 'w' in piece:
                         if 'p' in piece:
                             if state.board[x - 1][y] == "wp":
-                                value -= -8.0
-                            else:
-                                value -= 100.0 + field_values[x][y]
-                        elif 'R' in piece:
-                            value -= 500.0 + 1.5 * self.protectedRook(x, y, state.board)
-                        elif 'B' in piece:
-                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
-                        elif 'Q' in piece:
-                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
-                            value -= 900.0 + 1.0 * mult
-                        elif 'K' in piece:
-                            value -= 10000.0
-                        elif 'N' in piece:
-                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        elif state.checkMate:
-                            value -= 2500
-
-                    if 'b' in piece:
-                        if 'p' in piece:
-                            if state.board[x + 1][y] == 'bp':
-                                value += -8.0
-                            else:
-                                value += 100.0 + rev_field_values[x][y]
-                        elif 'R' in piece:
-                            value += 500.0 + 1.5 * self.protectedRook(x, y, state.board)
-                        elif 'B' in piece:
-                            value += 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
-                        elif 'Q' in piece:
-                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
-                            value += 900 + 1.0 * mult
-                        elif 'K' in piece:
-                            value += 10000.0
-                        elif 'N' in piece:
-                            value += 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        elif state.checkMate:
-                            value += 2500
-        else:
-            for x, row in enumerate(state.board):
-                for y, piece in enumerate(row):
-                    if 'b' in piece:
-                        if 'p' in piece:
-                            if state.board[x - 1][y] == "bp":
-                                value -= -8.0
-                            else:
-                                value -= 100.0 + rev_field_values[x][y]
-                        elif 'R' in piece:
-                            value -= 500.0 + 1.5 * self.protectedRook(x, y, state.board)
-                        elif 'B' in piece:
-                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
-                        elif 'Q' in piece:
-                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
-                            value -= 900.0 + 1.0 * mult
-                        elif 'K' in piece:
-                            value -= 10000.0
-                        elif 'N' in piece:
-                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        elif state.checkMate:
-                            value -= 2500
-                    if 'w' in piece:
-                        if 'p' in piece:
-                            if state.board[x + 1][y] == 'wp':
                                 value += -8.0
                             else:
                                 value += 100.0 + field_values[x][y]
@@ -111,13 +51,74 @@ class MinMax:
                             value += 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
                         elif 'Q' in piece:
                             mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
-                            value += 900 + 1.0 * mult
+                            value += 900.0 + 1.0 * mult
                         elif 'K' in piece:
                             value += 10000.0
                         elif 'N' in piece:
                             value += 300 + 3.0 * (4 - self.distanceToCenter(y))
                         elif state.checkMate:
                             value += 2500
+
+                    if 'b' in piece:
+                        if 'p' in piece:
+                            if state.board[x + 1][y] == 'bp':
+                                value -= -8.0
+                            else:
+                                value -= 100.0 + rev_field_values[x][y]
+                        elif 'R' in piece:
+                            value -= 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                        elif 'B' in piece:
+                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                        elif 'Q' in piece:
+                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            value -= 900 + 1.0 * mult
+                        elif 'K' in piece:
+                            value -= 10000.0
+                        elif 'N' in piece:
+                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
+                        elif state.checkMate:
+                            value -= 2500
+        else:
+            for x, row in enumerate(state.board):
+                for y, piece in enumerate(row):
+                    if 'b' in piece:
+                        if 'p' in piece:
+                            if state.board[x - 1][y] == "bp":
+                                value += -8.0
+                            else:
+                                value += 100.0 + rev_field_values[x][y]
+                        elif 'R' in piece:
+                            value += 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                        elif 'B' in piece:
+                            value += 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                        elif 'Q' in piece:
+                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            value += 900.0 + 1.0 * mult
+                        elif 'K' in piece:
+                            value += 10000.0
+                        elif 'N' in piece:
+                            value += 300 + 3.0 * (4 - self.distanceToCenter(y))
+                        elif state.checkMate:
+                            value += 2500
+                    if 'w' in piece:
+                        if 'p' in piece:
+                            if state.board[x + 1][y] == 'wp':
+                                value -= -8.0
+                            else:
+                                value -= 100.0 + field_values[x][y]
+                        elif 'R' in piece:
+                            value -= 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                        elif 'B' in piece:
+                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                        elif 'Q' in piece:
+                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            value -= 900 + 1.0 * mult
+                        elif 'K' in piece:
+                            value -= 10000.0
+                        elif 'N' in piece:
+                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
+                        elif state.checkMate:
+                            value -= 2500
         return value
 
     def protectedRook(self, x, y, board):
@@ -250,7 +251,7 @@ class MinMax:
 
     def makeMove(self):
         if not self.openingMove:
-            self.state.makeMove(self.minimaxRoot(self.state, 3, True), True)
+            self.state.makeMove(self.minimaxRoot(self.state, 4, True), True)
             print("Number of states: " + str(self.numberStates))
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners), True)

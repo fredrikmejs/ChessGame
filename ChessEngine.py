@@ -5,7 +5,7 @@ class GameState:
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "wB", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
@@ -192,7 +192,7 @@ class GameState:
                 goLeft = False
             elif self.board[r][c - i] == "--" and goLeft:
                 moves.append(Move((r, c), (r, c - i), self.board))
-            elif self.board[r][c - i][0] == enemyColor:
+            elif self.board[r][c - i][0] == enemyColor and goLeft:
                 moves.append(Move((r, c), (r, c - i), self.board))
                 goLeft = False
             else:
@@ -218,7 +218,7 @@ class GameState:
                 topLeft = False
             elif self.board[r - i][c - i] == "--" and topLeft:
                 moves.append(Move((r, c), (r - i, c - i), self.board))
-            elif self.board[r - i][c - i][0] == enemyColor:
+            elif self.board[r - i][c - i][0] == enemyColor and topLeft:
                 moves.append(Move((r, c), (r - i, c - i), self.board))
                 topLeft = False
             else:
@@ -263,7 +263,6 @@ class GameState:
             i += 1
 
     def getKnightMoves(self, r, c, moves):
-
         enemyColor = "b" if self.whiteToMove else "w"
         # Checks move in the different directions
         if r - 2 < 0 or c - 1 < 0:
