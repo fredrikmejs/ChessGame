@@ -3,8 +3,8 @@ class GameState:
         # Creates the board
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["bp", "bp", "bp", "bp", "--", "bp", "bp", "bp"],
-            ["--", "--", "--", "--", "bp", "--", "--", "--"],
+            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -108,7 +108,6 @@ class GameState:
                     self.isAiWhiteMate = True
                 else:
                     self.isAiBlackMate = True
-                print("I see mate, checkmate")
             return moves
 
         return []

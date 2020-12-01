@@ -23,8 +23,7 @@ class ChessGame:
     def main(self):
         firstTurn = True
         while True:
-            playerchoice = "human"
-            #playerchoice = input("Do you want white to be ai or human?\n")
+            playerchoice = input("Do you want white to be ai or human?\n")
             if playerchoice == "ai":
                 self.aiWhite = True
                 break
