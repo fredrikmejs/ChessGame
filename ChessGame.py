@@ -21,11 +21,11 @@ def main():
     firstTurn = True
     aiWhite = False
     while True:
-        playerchoice = input("Do you want white to be ai or human?\n")
-        if playerchoice == "ai":
+        playerChoice = input("Do you want white to be ai or human?\n")
+        if playerChoice == "ai":
             aiWhite = True
             break
-        elif playerchoice == "human":
+        elif playerChoice == "human":
             break
         else:
             pass
