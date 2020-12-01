@@ -1,16 +1,15 @@
-import  ChessGame as chessGame
 class GameState:
     def __init__(self):
         # Creates the board
         self.board = [
-            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+            ["bR", "bN", "bB", "bQ", "bK", "--", "--", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
+            ["wR", "--", "--", "wQ", "wK", "--", "--", "wR"]]
 
         self.functionForMove = {'p': self.getPawnMoves, 'R': self.getRookMoves, 'N': self.getKnightMoves,
                                 'B': self.getBishopMoves, 'Q': self.getQueenMoves, 'K': self.getKingMoves}
@@ -48,7 +47,7 @@ class GameState:
         if move.isPawnPromotion:
             self.board[move.endRow][move.endCol] = move.pieceMoved[0] + 'Q'
 
-        if move.isCastleMove:
+        if move.isCastleMove and isMoveMade:
             if move.endCol - move.startCol == + 2:  # Checks if it a king or queen side castle
                 self.board[move.endRow][move.endCol - 1] = self.board[move.endRow][move.endCol + 1]
                 self.board[move.endRow][move.endCol + 1] = '--'
@@ -102,7 +101,7 @@ class GameState:
                 self.whiteToMove = not self.whiteToMove
                 self.undoMove()
             if len(moves) == 0 and not isAI:
-                self.checkMate = True
+                    self.checkMate = True
             elif len(moves) == 0 and isAI:
                 self.isAiMate = True
             return moves
@@ -316,42 +315,50 @@ class GameState:
     def getKingMoves(self, r, c, moves):
         enemyColor = "b" if self.whiteToMove else "w"
 
+        # up + left
         if r - 1 < 0 or c - 1 < 0:
             pass
         elif self.board[r - 1][c - 1] == "--" or self.board[r - 1][c - 1][0] == enemyColor:
             moves.append(Move((r, c), (r - 1, c - 1), self.board))
 
+        # up
         if r - 1 < 0:
             pass
         elif self.board[r - 1][c] == "--" or self.board[r - 1][c][0] == enemyColor:
             moves.append(Move((r, c), (r - 1, c), self.board))
 
+        # up + right
         if r - 1 < 0 or c + 1 > len(self.board) - 1:
             pass
         elif self.board[r - 1][c + 1] == "--" or self.board[r - 1][c + 1][0] == enemyColor:
             moves.append(Move((r, c), (r - 1, c + 1), self.board))
 
+        # left
         if c - 1 < 0:
             pass
         elif self.board[r][c - 1] == "--" or self.board[r][c - 1][0] == enemyColor:
             moves.append(Move((r, c), (r, c - 1), self.board))
 
+        # right
         if c + 1 > len(self.board) - 1:
             pass
         elif self.board[r][c + 1] == "--" or self.board[r][c + 1][0] == enemyColor:
             moves.append(Move((r, c), (r, c + 1), self.board))
 
+        # down + left
         if r + 1 > len(self.board) - 1 or c - 1 < 0:
             pass
         elif self.board[r + 1][c - 1] == "--" or self.board[r + 1][c - 1][0] == enemyColor:
             moves.append(Move((r, c), (r + 1, c - 1), self.board))
 
+        # down
         if r + 1 > len(self.board) - 1:
             pass
         elif self.board[r + 1][c] == "--" or self.board[r + 1][c][0] == enemyColor:
             moves.append(Move((r, c), (r + 1, c), self.board))
 
-        if r + 1 > len(self.board) - 1 or c + 2 > len(self.board) - 1:
+        # down + right
+        if r + 1 > len(self.board) - 1 or c + 1 > len(self.board) - 1:
             pass
         elif self.board[r + 1][c + 1] == "--" or self.board[r + 1][c + 1][0] == enemyColor:
             moves.append(Move((r, c), (r + 1, c + 1), self.board))
@@ -364,13 +371,13 @@ class GameState:
             if c - 1 > 0 and c - 2 > 0:
                 if (self.whiteToMove and self.whiteKingLoc == (7, 4)) or (not self.whiteToMove and
                                                                           self.blackKingLoc == (0, 4)):
-                    if self.board[r][c - 1] == '--' and self.board[r][c - 2] == '--':
+                    if self.board[r][c - 1] == '--' and self.board[r][c - 2] == '--' and self.board[r][c - 3] == '--':
                         if not self.squareUnderAttack(r, c - 1) and not self.squareUnderAttack(r, c - 2):
                             moves.append(Move((r, c), (r, c - 2), self.board, isCastleMove=True))
             if c + 3 < 8:
                 if (self.whiteToMove and self.whiteKingLoc == (7, 4)) or (not self.whiteToMove and
                                                                           self.blackKingLoc == (0, 4)):
-                    if self.board[r][c + 1] == '--' and self.board[r][c + 2] == '--' and self.board[r][c + 3]:
+                    if self.board[r][c + 1] == '--' and self.board[r][c + 2] == '--':
                         if not self.squareUnderAttack(r, c + 1) and not self.squareUnderAttack(r, c + 2):
                             moves.append(Move((r, c), (r, c + 2), self.board, isCastleMove=True))
 
@@ -404,12 +411,13 @@ class GameState:
                 self.isAiMate = False
 
             if move.isCastleMove:
-                if move.endCol - move.startCol == 2: #Kingside
-                    self.board[move.endRow][move.endCol +1] = self.board[move.endRow][move.endCol - 1]
-                    self.board[move.endRow][move.endCol - 1] = '--'
-                else: #Queenside
-                    self.board[move.endRow][move.endCol - 2] = self.board[move.endRow][move.endCol + 1]
-                    self.board[move.endRow][move.endCol + 1] = '--'
+                if (self.whiteToMove and self.whiteKingLoc == (move.endRow, move.endCol)) or (not self.whiteToMove and self.blackKingLoc == (move.endRow, move.endCol)):
+                    if move.endCol - move.startCol == 2:  # Kingside
+                        self.board[move.endRow][move.endCol + 1] = self.board[move.endRow][move.endCol - 1]
+                        self.board[move.endRow][move.endCol - 1] = '--'
+                    else:  # Queenside
+                        self.board[move.endRow][move.endCol - 2] = self.board[move.endRow][move.endCol + 1]
+                        self.board[move.endRow][move.endCol + 1] = '--'
 
 
 # Class is for data storage

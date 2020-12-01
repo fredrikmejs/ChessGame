@@ -24,7 +24,7 @@ class ChessGame:
         firstTurn = True
         while True:
             playerchoice = "human"
-            # playerchoice = input("Do you want white to be ai or human?\n")
+            #playerchoice = input("Do you want white to be ai or human?\n")
             if playerchoice == "ai":
                 self.aiWhite = True
                 break
@@ -37,7 +37,7 @@ class ChessGame:
         clock = p.time.Clock()
         screen.fill(p.Color("white"))
         gs = ChessEngine.GameState()
-        validMoves = gs.getValidMoves(True)
+        validMoves = gs.getValidMoves(False)
         moveMade = False
         self.loadImages()
         running = True
@@ -54,16 +54,12 @@ class ChessGame:
                         print("Black has won the game")
                 elif (gs.whiteToMove and self.aiWhite) or (not gs.whiteToMove and not self.aiWhite):
                     print("AI turn")
-                    if self.aiWhite:
-                        gs.whiteToMove = True
-                    else:
-                        gs.whiteToMove = False
                     ai = mm.MinMax(gs, firstTurn, gs.whiteToMove)
                     ai.makeMove()
                     print("Player Turn")
                     if firstTurn:
                         firstTurn = False
-                    validMoves = gs.getValidMoves(True)
+                    validMoves = gs.getValidMoves(False)
                 else:
                     for e in p.event.get():
                         if e.type == p.QUIT:
@@ -77,7 +73,7 @@ class ChessGame:
                                 sqSelected = ()
                                 playerClicks = []
                             else:
-                                validMoves = gs.getValidMoves(True)
+                                validMoves = gs.getValidMoves(False)
                                 sqSelected = (row, col)
                                 playerClicks.append(sqSelected)  # both first and second click
                             if len(playerClicks) == 2:  # Makes a brick a move is being made
