@@ -7,39 +7,42 @@ import time
 
 class MinMax:
     def __init__(self, GameState, openingMove, isWhite):
-        self.visitedStates = []
         self.state = GameState
         self.openingMove = openingMove
         self.whiteOpeners = [ChessEngine.Move((6, 4), (4, 4), self.state.board),
                              ChessEngine.Move((6, 3), (4, 3), self.state.board),
                              ChessEngine.Move((7, 6), (5, 5), self.state.board),
                              ChessEngine.Move((6, 2), (4, 2), self.state.board)]
-        self.knownBoards = []
         self.isWhite = isWhite
-        self.ztable = [[[random.randint(1, 2**64-1) for i in range(12)]for j in range(8)]for k in range(8)]
-        self.hashvalue = self.computeHash(self.state.board)
+        self.ztable = [[[random.randint(1, 2 ** 64 - 1) for i in range(12)] for j in range(8)] for k in range(8)]
+        self.hashValue = self.computeHash(self.state.board)
         self.hashtable = dict()
         self.timeUp = False
         self.timer = threading.Timer(29.0, self.changeTimer)
         self.timer.start()
+        self.endGame = False
+        self.check = False
 
     def changeTimer(self):
         self.timeUp = not self.timeUp
+
     # evaluation function, values taken from notes.
-    def get_board_value(self, state):
+    def get_board_value(self, state, move, lowestValue):
         value = 0.0
+        blackValue = 0.0
+        whiteValue = 0.0
         # checks if it's white's turn to move, and sets player.
         player = "w" if self.isWhite else "b"
         # field values, taken from slides.
         field_values = [
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0],
             [23.0, 30.0, 41.5, 44.0, 47.5, 33.5, 23.0, 23.0],
-            [8.0, 14.0, 23.0, 26.0, 29.0, 17.0, 8.0, 8.0],
-            [-3.0, 2.0, 9.5, 12.0, 14.5, 4.5, -3.0, -3.0],
-            [-4.0, 0.0, 6.0, 8.0, 10.0, 2.0, -4.0, -4.0],
-            [-4.0, -1.0, 3.5, 5.0, 6.5, 0.5, -4.0, -4.0],
-            [-2.0, 0.0, 3.0, 4.0, 5.0, 1.0, -2.0, -2.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+            [09.0, 14.0, 23.0, 26.0, 29.0, 17.0, 08.0, 08.0],
+            [03.0, 07.0, 09.5, 12.0, 14.5, 04.5, -3.0, -3.0],
+            [01.0, 03.0, 06.0, 08.0, 10.0, 02.0, -4.0, -4.0],
+            [-4.0, -1.0, 04.5, 05.0, 06.5, 01.5, -4.0, -4.0],
+            [-2.0, 00.0, 03.0, 04.0, 05.0, 01.0, -2.0, -2.0],
+            [00.0, 00.0, 00.0, 00.0, 00.0, 00.0, 00.0, 00.0]]
         # reverses the field_values array
         rev_field_values = field_values[::-1]
         # reverses each row in the fied_values array
@@ -51,83 +54,112 @@ class MinMax:
                     if 'w' in piece:
                         if 'p' in piece:
                             if state.board[x - 1][y] == "wp":
-                                value += -8.0
+                                whiteValue += -8.0
                             else:
-                                value += 100.0 + field_values[x][y]
+                                whiteValue += 100.0 + field_values[x][y]
                         elif 'R' in piece:
-                            value += 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                            whiteValue += 550.0 + 1.5 * self.protectedRook(x, y, state.board)
                         elif 'B' in piece:
-                            value += 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                            whiteValue += 450.0 + 2.5 * self.protectedBishop(x, y, state.board)
                         elif 'Q' in piece:
                             mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
-                            value += 900.0 + 1.0 * mult
+                            whiteValue += 1000.0 + 1.5 * mult
                         elif 'K' in piece:
-                            value += 10000.0
+                            whiteValue += 10000.0
                         elif 'N' in piece:
-                            value += 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        elif state.checkMate:
-                            value += 2500
-
+                            whiteValue += 300 + 3.0 * (4 - self.distanceToCenter(y))
+                        if state.isAiBlackMate:
+                            whiteValue += 15000
+                        if move is not None:
+                            if move.isCastleMove:
+                                whiteValue += 45
+                                state.castleLastTurnWhite = False
                     if 'b' in piece:
                         if 'p' in piece:
                             if state.board[x + 1][y] == 'bp':
-                                value -= -8.0
+                                blackValue -= -8.0
                             else:
-                                value -= 100.0 + rev_field_values[x][y]
+                                blackValue -= 100.0 + rev_field_values[x][y]
                         elif 'R' in piece:
-                            value -= 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                            blackValue -= 550.0 + 1.5 * self.protectedRook(x, y, state.board)
                         elif 'B' in piece:
-                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                            blackValue -= 450.0 + 2.5 * self.protectedBishop(x, y, state.board)
                         elif 'Q' in piece:
                             mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
-                            value -= 900 + 1.0 * mult
+                            blackValue -= 1000.0 + 1.5 * mult
                         elif 'K' in piece:
-                            value -= 10000.0
+                            blackValue -= 10000.0
                         elif 'N' in piece:
-                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        elif state.checkMate:
-                            value -= 2500
+                            blackValue -= 300 + 3.0 * (4 - self.distanceToCenter(y))
+                        if state.isAiWhiteMate:
+                            blackValue -= 15000
+                        if move is not None:
+                            if move.isCastleMove:
+                                blackValue -= 45
+                                state.castleLastTurnBlack = False
         else:
             for x, row in enumerate(state.board):
                 for y, piece in enumerate(row):
                     if 'b' in piece:
                         if 'p' in piece:
                             if state.board[x - 1][y] == "bp":
-                                value += -8.0
+                                blackValue += -8.0
                             else:
-                                value += 100.0 + rev_field_values[x][y]
+                                blackValue += 100.0 + rev_field_values[x][y]
                         elif 'R' in piece:
-                            value += 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                            blackValue += 550.0 + 1.5 * self.protectedRook(x, y, state.board)
                         elif 'B' in piece:
-                            value += 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                            blackValue += 450.0 + 2.5 * self.protectedBishop(x, y, state.board)
                         elif 'Q' in piece:
                             mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
-                            value += 900.0 + 1.0 * mult
+                            blackValue += 1000.0 + 1.5 * mult
                         elif 'K' in piece:
-                            value += 10000.0
+                            blackValue += 10000.0
                         elif 'N' in piece:
-                            value += 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        elif state.checkMate:
-                            value += 2500
+                            blackValue += 300 + 3.0 * (4 - self.distanceToCenter(y))
+                        if state.isAiWhiteMate:
+                            blackValue += 15000
+                        if move is not None:
+                            if move.isCastleMove:
+                                blackValue += 35
+                                move.isCastleMove = False
                     if 'w' in piece:
                         if 'p' in piece:
                             if state.board[x + 1][y] == 'wp':
-                                value -= -8.0
+                                whiteValue -= -8.0
                             else:
-                                value -= 100.0 + field_values[x][y]
+                                whiteValue -= 100.0 + field_values[x][y]
                         elif 'R' in piece:
-                            value -= 500.0 + 1.5 * self.protectedRook(x, y, state.board)
+                            whiteValue -= 550.0 + 1.5 * self.protectedRook(x, y, state.board)
                         elif 'B' in piece:
-                            value -= 300.0 + 2.0 * self.protectedBishop(x, y, state.board)
+                            whiteValue -= 450.0 + 2.5 * self.protectedBishop(x, y, state.board)
                         elif 'Q' in piece:
                             mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
-                            value -= 900 + 1.0 * mult
+                            whiteValue -= 1000.0 + 1.5 * mult
                         elif 'K' in piece:
-                            value -= 10000.0
+                            whiteValue -= 10000.0
                         elif 'N' in piece:
-                            value -= 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        elif state.checkMate:
-                            value -= 2500
+                            whiteValue -= 300 + 3.0 * (4 - self.distanceToCenter(y))
+                        if state.isAiBlackMate:
+                            whiteValue -= 15000
+                        if move is not None:
+                            if move.isCastleMove:
+                                whiteValue -= 35
+                                state.castleLastTurnWhite = False
+        if lowestValue:
+            if whiteValue < 0:
+                whiteValue *= -1
+            elif blackValue < 0:
+                blackValue *= -1
+            if whiteValue < blackValue:
+                return whiteValue - 10000
+            else:
+                return blackValue - 10000
+
+        if player == 'w':
+            value = whiteValue + blackValue
+        else:
+            value = blackValue + whiteValue
         return value
 
     def protectedRook(self, x, y, board):
@@ -209,63 +241,61 @@ class MinMax:
         elif y < 4:
             distance = 3 - y
         return distance
-        copy.board = c.deepcopy(original.board)
-        copy.whiteToMove = c.deepcopy(original.whiteToMove)
-        copy.moveLog = c.deepcopy(original.moveLog)
-        copy.whiteKingLoc = c.deepcopy(original.whiteKingLoc)
-        copy.blackKingLoc = c.deepcopy(original.blackKingLoc)
-        copy.staleMate = c.deepcopy(original.staleMate)
-        copy.checkMate = c.deepcopy(original.checkMate)
 
     def minimaxRoot(self, state, depth, isMaximizing):
-        possibleMoves = state.getValidMoves(False)
+        possibleMoves = state.getValidMoves(True)
         bestMoveValue = -(sys.maxsize - 1)
         bestMove = None
         for move in possibleMoves:
             if self.timeUp:
                 return None
-            newhash = self.hashvalue
+            newHash = self.hashValue
             piece = move.pieceMoved
-            newhash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
-            if newhash not in self.hashtable:
+            newHash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
+            if newHash not in self.hashtable:
                 state.makeMove(move, False)
-                value = max(bestMoveValue, self.minimax(state, depth-1, -(sys.maxsize-1), sys.maxsize, not isMaximizing))
+                value = max(bestMoveValue,
+                            self.minimax(state, depth - 1, -(sys.maxsize - 1), sys.maxsize, not isMaximizing, move))
                 piece = state.board[move.endRow][move.endCol]
-                newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                self.hashtable[newhash] = (value, move)
+                newHash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
+                self.hashtable[newHash] = (value, move)
                 state.undoMove()
             else:
-                value = self.hashtable.get(newhash)[0]
+                value = self.hashtable.get(newHash)[0]
             if value > bestMoveValue:
                 bestMoveValue = value
                 bestMove = move
-        if bestMove == None:
-            value = self.hashtable.get(self.hashvalue)[0]
-            bestMove = self.hashtable.get(self.hashvalue)[1]
-        self.hashtable[self.hashvalue] = (value, bestMove)
+        if bestMove is None:
+            value = self.hashtable.get(self.hashValue)[0]
+            bestMove = self.hashtable.get(self.hashValue)[1]
+        self.hashtable[self.hashValue] = (value, bestMove)
+        print("BestValue = " + str(value))
         return bestMove
-                
-    def minimax(self, state, depth, alpha, beta, isMaximizing):
+
+    def minimax(self, state, depth, alpha, beta, isMaximizing, move):
         if depth == 0:
-            return self.get_board_value(state)
-        possibleMoves = state.getValidMoves(False)
+            if self.endGame:
+                return self.end_game_value(state, move)
+            else:
+                return self.get_board_value(state, move, False)
+        possibleMoves = state.getValidMoves(True)
         if isMaximizing:
             value = -(sys.maxsize - 1)
             for move in possibleMoves:
                 if self.timeUp:
                     return -1
-                newhash = self.hashvalue
+                newHash = self.hashValue
                 piece = move.pieceMoved
-                newhash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
-                if newhash not in self.hashtable:
+                newHash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
+                if newHash not in self.hashtable:
                     state.makeMove(move, False)
-                    value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing))
+                    value = max(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
                     piece = state.board[move.endRow][move.endCol]
-                    newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                    self.hashtable[newhash] = (value, move)
+                    newHash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
+                    self.hashtable[newHash] = (value, move)
                     state.undoMove()
                 else:
-                    value = self.hashtable.get(newhash)[0]
+                    value = self.hashtable.get(newHash)[0]
                 alpha = max(alpha, value)
                 if alpha >= beta:
                     break
@@ -275,33 +305,47 @@ class MinMax:
             for move in possibleMoves:
                 if self.timeUp:
                     return -1
-                newhash = self.hashvalue
+                newHash = self.hashValue
                 piece = move.pieceMoved
-                newhash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
-                if newhash not in self.hashtable:
+                newHash ^= self.ztable[move.startRow][move.startCol][self.index(piece)]
+                if newHash not in self.hashtable:
                     state.makeMove(move, False)
-                    value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing))
+                    value = min(value, self.minimax(state, depth - 1, alpha, beta, not isMaximizing, move))
                     piece = state.board[move.endRow][move.endCol]
-                    newhash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
-                    self.hashtable[newhash] = (value, move)
+                    newHash ^= self.ztable[move.endRow][move.endCol][self.index(piece)]
+                    self.hashtable[newHash] = (value, move)
                     state.undoMove()
                 else:
-                    value = self.hashtable.get(newhash)[0]
+                    value = self.hashtable.get(newHash)[0]
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
+            if len(possibleMoves) == 0 and (state.isAiWhiteMate or state.isAiBlackMate):
+                self.check = True
+                value = min(value, self.minimax(state, 0, alpha, beta, not isMaximizing, move))
             return value
 
     def makeMove(self):
         if not self.openingMove:
             chosenMove = None
             finalMove = None
-            depth = 1
+            depth = 0
+            boardValue = self.get_board_value(self.state, None, True)
+            print("\n current value: " + str(boardValue))
+            if boardValue <= 2500:
+                self.endGame = True
+            else:
+                self.endGame = False
+
             while not self.timeUp:
+                depth += 1
                 chosenMove = self.minimaxRoot(self.state, depth, True)
+                if self.check:
+                    break
                 if not self.timeUp:
                     finalMove = chosenMove
-                depth += 1
+
+            print("Depth = " + str(depth))
             self.state.makeMove(finalMove, True)
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners), True)
@@ -338,7 +382,7 @@ class MinMax:
             return 11
         else:
             return -1
-    
+
     def computeHash(self, board):
         hash = 0
         for i in range(8):
@@ -347,3 +391,123 @@ class MinMax:
                     piece = self.index(board[i][j])
                     hash ^= self.ztable[i][j][piece]
         return hash
+
+    def end_game_value(self, state, move):
+        value = 0.0
+        # checks if it's white's turn to move, and sets player.
+        player = "w" if self.isWhite else "b"
+        # field values, taken from slides.
+        field_values = [
+            [50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0],
+            [35.0, 38.0, 46.5, 53.0, 57.5, 41.5, 32.0, 32.0],
+            [22.0, 14.0, 23.0, 26.0, 29.0, 17.0, 14.0, 17.0],
+            [13.0, 07.0, 09.5, 12.0, 14.5, 10.5, 11.0, 12.0],
+            [10.0, 03.0, 06.0, 08.0, 10.0, 08.0, 07.0, 09.0],
+            [08.0, -1.0, 04.5, 05.0, 06.5, 06.5, 07.0, 05.0],
+            [-2.0, 00.0, 03.0, 04.0, 05.0, 01.0, -2.0, -2.0],
+            [00.0, 00.0, 00.0, 00.0, 00.0, 00.0, 00.0, 00.0]]
+        # reverses the field_values array
+        rev_field_values = field_values[::-1]
+        # reverses each row in the fied_values array
+        for index, row in enumerate(rev_field_values):
+            rev_field_values[index] = row[::-1]
+        if player == 'w':
+            for x, row in enumerate(state.board):
+                for y, piece in enumerate(row):
+                    if 'w' in piece:
+                        if 'p' in piece:
+                            if state.board[x - 1][y] == "wp":
+                                value += -8.0
+                            else:
+                                value += 150.0 + field_values[x][y]
+                        elif 'R' in piece:
+                            value += 600.0 + 2.0 * self.protectedRook(x, y, state.board)
+                        elif 'B' in piece:
+                            value += 500.0 + 3.0 * self.protectedBishop(x, y, state.board)
+                        elif 'Q' in piece:
+                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            value += 1400.0 + 2.0 * mult
+                        elif 'K' in piece:
+                            value += 10000.0
+                        elif 'N' in piece:
+                            value += 320 + 3.0 * (4 - self.distanceToCenter(y))
+                        if state.isAiBlackMate:
+                            value += 15000
+                        if move is not None:
+                            if move.isCastleMove:
+                                value += 10
+                                state.castleLastTurnWhite = False
+                    if 'b' in piece:
+                        if 'p' in piece:
+                            if state.board[x + 1][y] == 'bp':
+                                value -= -8.0
+                            else:
+                                value -= 150.0 + rev_field_values[x][y]
+                        elif 'R' in piece:
+                            value -= 600.0 + 2.0 * self.protectedRook(x, y, state.board)
+                        elif 'B' in piece:
+                            value -= 500.0 + 3.0 * self.protectedBishop(x, y, state.board)
+                        elif 'Q' in piece:
+                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            value -= 1400.0 + 2.0 * mult
+                        elif 'K' in piece:
+                            value -= 10000.0
+                        elif 'N' in piece:
+                            value -= 320 + 3.0 * (4 - self.distanceToCenter(y))
+                        if state.isAiWhiteMate:
+                            value -= 15000
+                        if move is not None:
+                            if move.isCastleMove:
+                                value -= 10
+                                state.castleLastTurnBlack = False
+        else:
+            for x, row in enumerate(state.board):
+                for y, piece in enumerate(row):
+                    if 'b' in piece:
+                        if 'p' in piece:
+                            if state.board[x - 1][y] == "bp":
+                                value += -8.0
+                            else:
+                                value += 150.0 + rev_field_values[x][y]
+                        elif 'R' in piece:
+                            value += 600.0 + 2.0 * self.protectedRook(x, y, state.board)
+                        elif 'B' in piece:
+                            value += 500.0 + 3.0 * self.protectedBishop(x, y, state.board)
+                        elif 'Q' in piece:
+                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            value += 1400.0 + 2.0 * mult
+                        elif 'K' in piece:
+                            value += 10000.0
+                        elif 'N' in piece:
+                            value += 320 + 3.0 * (4 - self.distanceToCenter(y))
+                        if state.isAiWhiteMate:
+                            value += 15000
+                        if move is not None:
+                            if move.isCastleMove:
+                                value += 10
+                                move.isCastleMove = False
+
+                    if 'w' in piece:
+                        if 'p' in piece:
+                            if state.board[x + 1][y] == 'wp':
+                                value -= -8.0
+                            else:
+                                value -= 150.0 + field_values[x][y]
+                        elif 'R' in piece:
+                            value -= 600.0 + 2.0 * self.protectedRook(x, y, state.board)
+                        elif 'B' in piece:
+                            value -= 500.0 + 3.0 * self.protectedBishop(x, y, state.board)
+                        elif 'Q' in piece:
+                            mult = self.protectedBishop(x, y, state.board) + self.protectedRook(x, y, state.board) - 1
+                            value -= 1400.0 + 2.0 * mult
+                        elif 'K' in piece:
+                            value -= 10000.0
+                        elif 'N' in piece:
+                            value -= 320 + 3.0 * (4 - self.distanceToCenter(y))
+                        if state.isAiBlackMate:
+                            value -= 15000
+                        if move is not None:
+                            if move.isCastleMove:
+                                value -= 10
+                                state.castleLastTurnWhite = False
+        return value
