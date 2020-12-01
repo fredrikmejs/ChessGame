@@ -2,14 +2,14 @@ class GameState:
     def __init__(self):
         # Creates the board
         self.board = [
-            ["bR", "bN", "bB", "bQ", "bK", "--", "--", "bR"],
-            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+            ["bp", "bp", "bp", "bp", "--", "bp", "bp", "bp"],
+            ["--", "--", "--", "--", "bp", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-            ["wR", "--", "--", "wQ", "wK", "--", "--", "wR"]]
+            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
 
         self.functionForMove = {'p': self.getPawnMoves, 'R': self.getRookMoves, 'N': self.getKnightMoves,
                                 'B': self.getBishopMoves, 'Q': self.getQueenMoves, 'K': self.getKingMoves}
@@ -22,7 +22,8 @@ class GameState:
         self.blackKingLoc = (0, 4)
         self.checkMate = False
         self.staleMate = False
-        self.isAiMate = False
+        self.isAiWhiteMate = False
+        self.isAiBlackMate = False
 
         self.currentCastlingRight = CastleRights(True, True, True, True)
         self.castleRightsLog = [CastleRights(self.currentCastlingRight.whiteKSide, self.currentCastlingRight.blackKSide,
@@ -103,7 +104,11 @@ class GameState:
             if len(moves) == 0 and not isAI:
                     self.checkMate = True
             elif len(moves) == 0 and isAI:
-                self.isAiMate = True
+                if self.whiteToMove:
+                    self.isAiWhiteMate = True
+                else:
+                    self.isAiBlackMate = True
+                print("I see mate, checkmate")
             return moves
 
         return []
@@ -407,8 +412,11 @@ class GameState:
                 self.whiteKingLoc = (move.startRow, move.startCol)
             elif move.pieceMoved == 'bK':
                 self.blackKingLoc = (move.startRow, move.startCol)
-            if self.isAiMate:
-                self.isAiMate = False
+            if self.whiteToMove:
+                if self.isAiWhiteMate:
+                    self.isAiWhiteMate = False
+            elif self.isAiBlackMate:
+                self.isAiBlackMate = False
 
             if move.isCastleMove:
                 if (self.whiteToMove and self.whiteKingLoc == (move.endRow, move.endCol)) or (not self.whiteToMove and self.blackKingLoc == (move.endRow, move.endCol)):
