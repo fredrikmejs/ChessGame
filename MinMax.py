@@ -21,7 +21,7 @@ class MinMax:
         self.timer = threading.Timer(29.0, self.changeTimer)
         self.timer.start()
         self.endGame = False
-        self.check = False
+        self.visit = False
 
     def changeTimer(self):
         self.timeUp = not self.timeUp
@@ -68,8 +68,9 @@ class MinMax:
                             whiteValue += 10000.0
                         elif 'N' in piece:
                             whiteValue += 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        if state.isAiBlackMate:
+                        if state.isAiBlackMate and not self.visit:
                             whiteValue += 15000
+                            self.visit = True
                         if move is not None:
                             if move.isCastleMove:
                                 whiteValue += 45
@@ -91,8 +92,9 @@ class MinMax:
                             blackValue -= 10000.0
                         elif 'N' in piece:
                             blackValue -= 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        if state.isAiWhiteMate:
+                        if state.isAiWhiteMate and self.visit:
                             blackValue -= 15000
+                            self.visit = True
                         if move is not None:
                             if move.isCastleMove:
                                 blackValue -= 45
@@ -117,8 +119,9 @@ class MinMax:
                             blackValue += 10000.0
                         elif 'N' in piece:
                             blackValue += 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        if state.isAiWhiteMate:
+                        if state.isAiWhiteMate and not self.visit:
                             blackValue += 15000
+                            self.visit = True
                         if move is not None:
                             if move.isCastleMove:
                                 blackValue += 35
@@ -140,8 +143,9 @@ class MinMax:
                             whiteValue -= 10000.0
                         elif 'N' in piece:
                             whiteValue -= 300 + 3.0 * (4 - self.distanceToCenter(y))
-                        if state.isAiBlackMate:
+                        if state.isAiBlackMate and self.visit:
                             whiteValue -= 15000
+                            self.visit = True
                         if move is not None:
                             if move.isCastleMove:
                                 whiteValue -= 35
@@ -160,6 +164,7 @@ class MinMax:
             value = whiteValue + blackValue
         else:
             value = blackValue + whiteValue
+        self.visit = False
         return value
 
     def protectedRook(self, x, y, board):
@@ -269,7 +274,6 @@ class MinMax:
             value = self.hashtable.get(self.hashValue)[0]
             bestMove = self.hashtable.get(self.hashValue)[1]
         self.hashtable[self.hashValue] = (value, bestMove)
-        print("BestValue = " + str(value))
         return bestMove
 
     def minimax(self, state, depth, alpha, beta, isMaximizing, move):
@@ -321,7 +325,6 @@ class MinMax:
                 if beta <= alpha:
                     break
             if len(possibleMoves) == 0 and (state.isAiWhiteMate or state.isAiBlackMate):
-                self.check = True
                 value = min(value, self.minimax(state, 0, alpha, beta, not isMaximizing, move))
             return value
 
@@ -331,7 +334,6 @@ class MinMax:
             finalMove = None
             depth = 0
             boardValue = self.get_board_value(self.state, None, True)
-            print("\n current value: " + str(boardValue))
             if boardValue <= 2500:
                 self.endGame = True
             else:
@@ -340,8 +342,6 @@ class MinMax:
             while not self.timeUp:
                 depth += 1
                 chosenMove = self.minimaxRoot(self.state, depth, True)
-                if self.check:
-                    break
                 if not self.timeUp:
                     finalMove = chosenMove
 
@@ -431,8 +431,9 @@ class MinMax:
                             value += 10000.0
                         elif 'N' in piece:
                             value += 320 + 3.0 * (4 - self.distanceToCenter(y))
-                        if state.isAiBlackMate:
+                        if state.isAiBlackMate and not self.visit:
                             value += 15000
+                            self.visit = True
                         if move is not None:
                             if move.isCastleMove:
                                 value += 10
@@ -504,10 +505,12 @@ class MinMax:
                             value -= 10000.0
                         elif 'N' in piece:
                             value -= 320 + 3.0 * (4 - self.distanceToCenter(y))
-                        if state.isAiBlackMate:
+                        if state.isAiBlackMate and not self.visit:
                             value -= 15000
+                            self.visit = True
                         if move is not None:
                             if move.isCastleMove:
                                 value -= 10
                                 state.castleLastTurnWhite = False
+        self.visit = False
         return value
