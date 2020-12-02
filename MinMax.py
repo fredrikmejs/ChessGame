@@ -18,7 +18,7 @@ class MinMax:
         self.hashValue = self.computeHash(self.state.board)
         self.hashtable = dict()
         self.timeUp = False
-        self.timer = threading.Timer(29.0, self.changeTimer)
+        self.timer = threading.Timer(15.0, self.changeTimer)
         self.timer.start()
         self.endGame = False
         self.visit = False
