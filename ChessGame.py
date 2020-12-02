@@ -6,13 +6,15 @@ import MinMax as mm
 class ChessGame:
 
     def __init__(self):
-        self.WIDTH = 1920
-        self.HEIGHT = 1920
+        self.WIDTH = 700
+        self.HEIGHT = 700
         self.DIMENSION = 8  # The dimension of a chess board is 8x8
         self.SQ_SIZE = self.HEIGHT // self.DIMENSION
         self.MAX_FPS = 15
         self.IMAGES = {}
         self.aiWhite = False
+        self.branchingFactors = []
+        self.totalVisited = 0
 
     def loadImages(self):
         pieces = ['wp', 'wR', 'wN', 'wB', 'wK', 'wQ', 'bp', 'bR', 'bN', 'bB', 'bK', 'bQ']
@@ -49,11 +51,15 @@ class ChessGame:
                     gameWon = True
                     if not gs.whiteToMove:
                         print("White has won the game")
+                        print(str(self.totalVisited))
+                        print(str(sum(self.branchingFactors) / len(self.branchingFactors)))
                     else:
                         print("Black has won the game")
+                        print(str(self.totalVisited))
+                        print(str(sum(self.branchingFactors) / len(self.branchingFactors)))
                 elif (gs.whiteToMove and self.aiWhite) or (not gs.whiteToMove and not self.aiWhite):
                     print("AI turn")
-                    ai = mm.MinMax(gs, firstTurn, gs.whiteToMove)
+                    ai = mm.MinMax(gs, firstTurn, gs.whiteToMove, self)
                     ai.makeMove()
                     print("Player Turn")
                     if firstTurn:

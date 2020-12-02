@@ -6,7 +6,7 @@ import time
 
 
 class MinMax:
-    def __init__(self, GameState, openingMove, isWhite):
+    def __init__(self, GameState, openingMove, isWhite, ChessGame):
         self.state = GameState
         self.openingMove = openingMove
         self.whiteOpeners = [ChessEngine.Move((6, 4), (4, 4), self.state.board),
@@ -18,10 +18,13 @@ class MinMax:
         self.hashValue = self.computeHash(self.state.board)
         self.hashtable = dict()
         self.timeUp = False
-        self.timer = threading.Timer(15.0, self.changeTimer)
+        self.timer = threading.Timer(29.0, self.changeTimer)
         self.timer.start()
         self.endGame = False
         self.visit = False
+        self.cg = ChessGame
+        self.branchingFactors = []
+        self.visited = 0
 
     def changeTimer(self):
         self.timeUp = not self.timeUp
@@ -249,9 +252,11 @@ class MinMax:
 
     def minimaxRoot(self, state, depth, isMaximizing):
         possibleMoves = state.getValidMoves(True)
+        self.branchingFactors.append(len(possibleMoves))
         bestMoveValue = -(sys.maxsize - 1)
         bestMove = None
         for move in possibleMoves:
+            self.visited += 1
             if self.timeUp:
                 return None
             newHash = self.hashValue
@@ -283,9 +288,11 @@ class MinMax:
             else:
                 return self.get_board_value(state, move, False)
         possibleMoves = state.getValidMoves(True)
+        self.branchingFactors.append(len(possibleMoves))
         if isMaximizing:
             value = -(sys.maxsize - 1)
             for move in possibleMoves:
+                self.visited += 1
                 if self.timeUp:
                     return -1
                 newHash = self.hashValue
@@ -307,6 +314,7 @@ class MinMax:
         else:
             value = sys.maxsize
             for move in possibleMoves:
+                self.visited += 1
                 if self.timeUp:
                     return -1
                 newHash = self.hashValue
@@ -344,9 +352,10 @@ class MinMax:
                 chosenMove = self.minimaxRoot(self.state, depth, True)
                 if not self.timeUp:
                     finalMove = chosenMove
-
             print("Depth = " + str(depth))
             self.state.makeMove(finalMove, True)
+            self.cg.branchingFactors.append(sum(self.branchingFactors) / len(self.branchingFactors))
+            self.cg.totalVisited += self.visited
         elif self.openingMove and self.state.whiteToMove:
             self.state.makeMove(random.choice(self.whiteOpeners), True)
         elif self.openingMove and not self.state.whiteToMove:
